@@ -74,31 +74,21 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install
 
-      - name: Update specific overlay
-        if: ${{ github.event.inputs.overlay != '' }}
+      - name: Run Dagger Version Update
         run: |
+          VERBOSE_FLAG="--verbose"
+          DRY_RUN_FLAG=""
+          OVERLAY_FLAG=""
+
           if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "🔍 Running dry run for overlay: ${{ github.event.inputs.overlay }}"
-            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
-              --overlay ${{ github.event.inputs.overlay }} --dry-run --verbose
-          else
-            echo "🏷️ Updating overlay: ${{ github.event.inputs.overlay }}"
-            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
-              --overlay ${{ github.event.inputs.overlay }} --verbose
+            DRY_RUN_FLAG="--dry-run"
           fi
 
-      - name: Update all overlays
-        if: ${{ github.event.inputs.overlay == '' }}
-        run: |
-          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "🔍 Running dry run for all overlays"
-            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
-              --dry-run --verbose
-          else
-            echo "🏷️ Updating all overlays"
-            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
-              --verbose
+          if [[ "${{ github.event.inputs.overlay }}" != "" ]]; then
+            OVERLAY_FLAG="--overlay ${{ github.event.inputs.overlay }}"
           fi
+
+          poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} $OVERLAY_FLAG $DRY_RUN_FLAG $VERBOSE_FLAG
 
       - name: Validate version consistency
         if: ${{ github.event.inputs.dry_run != 'true' }}
@@ -162,11 +152,8 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install
 
-      - name: Run linting on updated version
-        run: poetry run dagger-pipeline lint --verbose
-
-      - name: Generate manifests with updated version
-        run: poetry run dagger-pipeline generate --verbose
+      - name: Run Dagger CI Pipeline on Updated Version
+        run: poetry run dagger-pipeline ci --verbose
 
       - name: Upload updated manifests
         uses: actions/upload-artifact@v3
@@ -174,16 +161,3 @@ jobs:
           name: updated-manifests-${{ needs.validate-version.outputs.version }}
           path: manifests/
           retention-days: 30
-
-      - name: Run security scan on updated manifests
-        run: |
-          poetry run python -c "
-          import asyncio
-          from dagger_pipeline.pipeline import Pipeline
-
-          async def main():
-              pipeline = Pipeline(verbose=True)
-              await pipeline.security_scan_generated('manifests')
-
-          asyncio.run(main())
-          "
