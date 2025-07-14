@@ -156,4 +156,4 @@ poetry run dagger-pipeline ci --verbose
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/taybiz/css-kustomize/blob/main/LICENSE) file for details.
+This project is licensed under the Apache 2.0 License. See the [LICENSE](https://github.com/taybiz/css-kustomize/blob/main/LICENSE) file for details.
