@@ -584,7 +584,17 @@ class Pipeline:
             console.print(f"✅ Updated {len(overlay_names)} overlays to version: {version}")
 
     async def validate_version_consistency(self) -> None:
-        """Validate that image tags match version labels across all overlays."""
+        """Validate version consistency across all overlays.
+
+        This validates that:
+        - Image tags are present and valid (CSS application version)
+        - Version labels are present and valid (project version from pyproject.toml)
+        - Both are consistently applied across all overlays
+
+        Note: Image tags and version labels are intentionally independent -
+        image tags represent the CSS application version while version labels
+        represent the project/tooling version.
+        """
         if self.verbose:
             console.print("🔍 Validating version consistency...")
 
@@ -592,6 +602,9 @@ class Pipeline:
         if not overlays_dir.exists():
             console.print("No overlays directory found", style="yellow")
             return
+
+        # Get expected project version from pyproject.toml
+        expected_project_version = await self._get_project_version()
 
         async with self._get_client() as client:
             container = await self._get_yaml_container(client)
@@ -628,14 +641,19 @@ class Pipeline:
                     except:
                         version_label = None
 
-                    # Check consistency
-                    if image_tag and version_label:
-                        if image_tag != version_label:
-                            issues.append(f"{overlay_name}: image tag '{image_tag}' != version label '{version_label}'")
-                    elif image_tag and not version_label:
-                        issues.append(f"{overlay_name}: has image tag '{image_tag}' but no version label")
-                    elif version_label and not image_tag:
-                        issues.append(f"{overlay_name}: has version label '{version_label}' but no image tag")
+                    # Validate image tag presence
+                    if not image_tag:
+                        issues.append(f"{overlay_name}: missing image tag")
+                    elif not self._validate_version_format(image_tag):
+                        issues.append(f"{overlay_name}: invalid image tag format '{image_tag}'")
+
+                    # Validate version label presence and consistency with project version
+                    if not version_label:
+                        issues.append(f"{overlay_name}: missing version label")
+                    elif version_label != expected_project_version:
+                        issues.append(
+                            f"{overlay_name}: version label '{version_label}' != project version '{expected_project_version}'"
+                        )
 
             if issues:
                 console.print("❌ Version consistency issues found:", style="red")
@@ -715,14 +733,16 @@ class Pipeline:
                     console.print(f"   Image Tag: {image_tag}")
                     console.print(f"   Version Label: {version_label}")
 
-                    # Check consistency
+                    # Check completeness (both should be present but independent)
                     if image_tag != "not set" and version_label != "not set":
-                        if image_tag == version_label:
-                            console.print("   Status: ✅ Consistent", style="green")
-                        else:
-                            console.print("   Status: ❌ Inconsistent", style="red")
+                        console.print("   Status: ✅ Complete", style="green")
                     else:
-                        console.print("   Status: ⚠️ Incomplete", style="yellow")
+                        missing = []
+                        if image_tag == "not set":
+                            missing.append("image tag")
+                        if version_label == "not set":
+                            missing.append("version label")
+                        console.print(f"   Status: ⚠️ Missing {', '.join(missing)}", style="yellow")
 
             console.print("\n" + "=" * 50)
             console.print("📊 Report completed", style="bold blue")
