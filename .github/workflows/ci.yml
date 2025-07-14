@@ -47,7 +47,7 @@ jobs:
         run: poetry run dagger-pipeline ci --verbose
 
       - name: Upload generated manifests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kubernetes-manifests
           path: manifests/

@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload artifacts
         if: contains(fromJson('["generate", "generate-parallel", "ci"]'), github.event.inputs.task)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dev-${{ github.event.inputs.task }}-${{ github.run_number }}
           path: manifests/
