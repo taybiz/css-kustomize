@@ -17,7 +17,7 @@ images:
 labels:
   - pairs:
       app.kubernetes.io/instance: css-with-pvc
-      app.kubernetes.io/version: 6.0.2
+      app.kubernetes.io/version: 0.2.0
 
 patches:
   - target:
@@ -29,7 +29,7 @@ patches:
         value: css-with-pvc
       - op: add
         path: /spec/selector/app.kubernetes.io~1version
-        value: 6.0.2
+        value: 0.2.0
   - target:
       kind: Deployment
       name: community-solid-server
@@ -39,10 +39,10 @@ patches:
         value: css-with-pvc
       - op: add
         path: /spec/selector/matchLabels/app.kubernetes.io~1version
-        value: 6.0.2
+        value: 0.2.0
       - op: add
         path: /spec/template/metadata/labels/app.kubernetes.io~1instance
         value: css-with-pvc
       - op: add
         path: /spec/template/metadata/labels/app.kubernetes.io~1version
-        value: 6.0.2
+        value: 0.2.0

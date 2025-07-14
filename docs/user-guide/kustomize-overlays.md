@@ -8,20 +8,6 @@ This project uses Kustomize overlays to manage environment-specific configuratio
 
 ## Available Overlays
 
-### `without-pvc`
-
-- **Purpose**: Local development without persistence
-- **Release Name**: `css-local`
-- **Storage**: None
-- **Use Case**: Quick testing and development
-
-### `with-pvc`
-
-- **Purpose**: Local development with persistence
-- **Release Name**: `css-with-pvc`
-- **Storage**: PersistentVolumeClaim
-- **Use Case**: Local testing with data persistence
-
 ### `with-pvc`
 
 - **Purpose**: Production-like deployment
