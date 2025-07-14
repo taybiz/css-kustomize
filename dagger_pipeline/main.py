@@ -146,7 +146,7 @@ def lint(
 
 
 @cli.command()
-@click.option("--overlay", help="Specific overlay to generate (e.g., local-pvc)")
+@click.option("--overlay", help="Specific overlay to generate (e.g., with-pvc)")
 @click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def generate(overlay: str | None, output_dir: str, verbose: bool):
@@ -157,7 +157,7 @@ def generate(overlay: str | None, output_dir: str, verbose: bool):
     overlay or all available overlays.
 
     Args:
-        overlay: Name of specific overlay to generate (e.g., 'local-pvc', 'with-pvc').
+        overlay: Name of specific overlay to generate (e.g., 'with-pvc', 'with-pvc').
                 If None, generates manifests for all overlays.
         output_dir: Directory where generated manifests will be saved.
                    Defaults to 'manifests'.
@@ -172,7 +172,7 @@ def generate(overlay: str | None, output_dir: str, verbose: bool):
             $ poetry run dagger-pipeline generate
 
         Generate specific overlay:
-            $ poetry run dagger-pipeline generate --overlay local-pvc
+            $ poetry run dagger-pipeline generate --overlay with-pvc
 
         Generate to custom directory:
             $ poetry run dagger-pipeline generate --output-dir ./output
@@ -353,7 +353,7 @@ def version():
 
 @version.command()
 @click.argument("new_version")
-@click.option("--overlay", help="Update specific overlay only (e.g., local-base, with-pvc)")
+@click.option("--overlay", help="Update specific overlay only (e.g., with-base, with-pvc)")
 @click.option("--dry-run", is_flag=True, help="Show what would be changed without making changes")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def update(new_version: str, overlay: str | None, dry_run: bool, verbose: bool):

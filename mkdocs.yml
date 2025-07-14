@@ -80,7 +80,6 @@ nav:
   - Developer Guide:
       - Architecture: developer-guide/architecture.md
       - Dagger Pipeline: developer-guide/dagger-pipeline.md
-      - Caching Strategy: developer-guide/caching-strategy.md
       - Contributing: developer-guide/contributing.md
   - Examples:
       - Basic Usage: examples/basic-usage.md

@@ -19,7 +19,7 @@ This repository contains Kubernetes manifests for deploying the Community Solid 
 │   │   └── kustomization.yaml     # Uses PVC component
 │   ├── without-pvc/               # Deployment with ephemeral storage
 │   │   └── kustomization.yaml     # Uses base emptyDir
-│   └── local-pvc/                 # Legacy overlay (deprecated)
+│   └── with-pvc/                 # Legacy overlay (deprecated)
 │       ├── deployment-patch.yaml  # Deployment patches
 │       ├── kustomization.yaml     # Overlay kustomization
 │       └── pvc.yaml               # Persistent Volume Claim
@@ -52,8 +52,6 @@ This project implements a comprehensive release name strategy using `app.kuberne
 
 | Overlay       | Release Name      | Purpose                                 |
 | ------------- | ----------------- | --------------------------------------- |
-| `local-base`  | `css-local`       | Local development without PVC           |
-| `local-pvc`   | `css-local-pvc`   | Local development with PVC              |
 | `with-pvc`    | `css-with-pvc`    | Production-like with persistent storage |
 | `without-pvc` | `css-without-pvc` | Stateless deployment                    |
 
@@ -111,7 +109,7 @@ poetry run dagger-pipeline version validate
 ```
 📋 Version Report
 
-🏷️ Overlay: local-base
+🏷️ Overlay: without-pvc
    Instance: css-local
    Image Tag: 6.0.2
    Version Label: 6.0.2
@@ -330,9 +328,6 @@ kubectl kustomize overlays/without-pvc/ > manifests/without-pvc.yaml
 
 # Persistent storage (PVC)
 kubectl kustomize overlays/with-pvc/ > manifests/with-pvc.yaml
-
-# Legacy PVC overlay (deprecated)
-kubectl kustomize overlays/local-pvc/ > manifests/local-pvc.yaml
 ```
 
 ### Apply to Kubernetes
@@ -404,7 +399,7 @@ poetry run dagger-pipeline lint --security-only
 kubectl create namespace solid
 
 # Deploy with local PVC overlay
-kustomize build overlays/local-pvc/ | kubectl apply -f -
+kustomize build overlays/with-pvc/ | kubectl apply -f -
 
 # Check deployment
 kubectl get pods -n solid
@@ -424,10 +419,10 @@ kubectl get svc -n solid
 
 ```bash
 # Check generated manifests
-cat manifests/local-pvc.yaml
+cat manifests/with-pvc.yaml
 
 # Validate Kubernetes resources
-kubectl --dry-run=client apply -f manifests/local-pvc.yaml
+kubectl --dry-run=client apply -f manifests/with-pvc.yaml
 
 # Run Dagger pipeline with verbose output
 poetry run dagger-pipeline lint --verbose

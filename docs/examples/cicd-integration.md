@@ -342,7 +342,7 @@ deploy-review:
   stage: deploy
   script:
     - kubectl create namespace css-review-$CI_MERGE_REQUEST_IID || true
-    - kubectl apply -f manifests/local-base.yaml -n css-review-$CI_MERGE_REQUEST_IID
+    - kubectl apply -f manifests/without-pvc.yaml -n css-review-$CI_MERGE_REQUEST_IID
   environment:
     name: review/$CI_MERGE_REQUEST_IID
     url: https://css-review-$CI_MERGE_REQUEST_IID.example.com

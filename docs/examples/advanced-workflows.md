@@ -8,7 +8,7 @@ Complex scenarios and advanced usage patterns for CSS Kustomize.
 
 ```bash
 # Development environment
-poetry run dagger-pipeline generate-overlay local-base manifests/dev.yaml
+poetry run dagger-pipeline generate-overlay without-pvc manifests/dev.yaml
 
 # Staging environment  
 poetry run dagger-pipeline generate-overlay with-pvc manifests/staging.yaml
@@ -28,7 +28,7 @@ VERSION=$2
 
 case $ENVIRONMENT in
   "staging")
-    OVERLAY="with-pvc"
+    OVERLAY="without-pvc"
     ;;
   "production")
     OVERLAY="with-pvc"
@@ -213,7 +213,7 @@ from pathlib import Path
 
 async def process_overlays_parallel():
     """Process multiple overlays in parallel."""
-    overlays = ["local-base", "local-pvc", "with-pvc", "without-pvc"]
+    overlays = ["with-pvc", "without-pvc"]
     
     async with dagger.Connection() as client:
         tasks = []
@@ -250,7 +250,7 @@ async def generate_and_validate_overlay(client, overlay_name):
 # batch-operations.sh
 
 OPERATIONS=("lint" "validate" "security-scan")
-OVERLAYS=("local-base" "local-pvc" "with-pvc" "without-pvc")
+OVERLAYS=("with-pvc" "without-pvc")
 
 # Run operations in parallel
 for op in "${OPERATIONS[@]}"; do
@@ -366,7 +366,7 @@ kind create cluster --name css-test
 
 # Generate and apply manifests
 poetry run dagger-pipeline generate manifests/
-kubectl apply -f manifests/local-base.yaml
+kubectl apply -f manifests/without-pvc.yaml
 
 # Wait for deployment
 kubectl wait --for=condition=available --timeout=300s deployment/css-local

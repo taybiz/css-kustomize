@@ -20,8 +20,6 @@ Located in `base/`, these provide the foundation:
 
 Environment-specific configurations in `overlays/`:
 
-- **local-base**: Development without persistence
-- **local-pvc**: Development with persistence
 - **with-pvc**: Production with storage
 - **without-pvc**: Stateless production
 
@@ -194,6 +192,5 @@ Rich CLI with modern features:
 ## Next Steps
 
 - Learn about [Dagger Pipeline](dagger-pipeline.md) internals
-- Understand [Caching Strategy](caching-strategy.md)
 - Read [Contributing Guide](contributing.md)
 - Explore [Examples](../examples/basic-usage.md)

@@ -10,7 +10,7 @@ A Kubernetes application deployment project using Kustomize for configuration ma
 
 - **Base Configuration**: Standard Kubernetes manifests (deployment, service, kustomization)
 - **Overlays**: Environment-specific configurations
-  - `local-pvc`: Local development with persistent volume claims
+  - `with-pvc`: Local development with persistent volume claims
 - **Dagger Pipeline**: Python-based automation for linting and validation
 - **Memory Bank**: Knowledge repository for project documentation
 

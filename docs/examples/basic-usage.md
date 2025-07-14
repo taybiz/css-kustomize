@@ -45,7 +45,7 @@ poetry run dagger-pipeline lint --yaml --python
 poetry run dagger-pipeline validate
 
 # Generate specific overlay for testing
-poetry run dagger-pipeline generate-overlay local-base /tmp/test.yaml
+poetry run dagger-pipeline generate-overlay without-pvc /tmp/test.yaml
 ```
 
 ### Pre-commit Workflow
@@ -67,7 +67,7 @@ poetry run dagger-pipeline pre-commit
 
 ```bash
 # Generate local development overlay
-poetry run dagger-pipeline generate-overlay local-base manifests/local.yaml
+poetry run dagger-pipeline generate-overlay without-pvc manifests/local.yaml
 
 # Generate production overlay with PVC
 poetry run dagger-pipeline generate-overlay with-pvc manifests/production.yaml
@@ -108,7 +108,7 @@ poetry run dagger-pipeline validate-versions
 
 ```bash
 # Update only development overlay
-poetry run dagger-pipeline update-overlay-version local-base 6.1.0-beta.1
+poetry run dagger-pipeline update-overlay-version without-pvc 6.1.0-beta.1
 
 # Update production overlay
 poetry run dagger-pipeline update-overlay-version with-pvc 6.0.3
@@ -144,7 +144,7 @@ grep -r "runAsRoot: true" overlays/ || echo "No root containers found"
 
 ```bash
 # Generate local overlay
-poetry run dagger-pipeline generate-overlay local-base manifests/local.yaml
+poetry run dagger-pipeline generate-overlay without-pvc manifests/local.yaml
 
 # Deploy to local cluster
 kubectl apply -f manifests/local.yaml
@@ -242,7 +242,7 @@ poetry run dagger-pipeline ci
 ```bash
 # Run only what you need
 poetry run dagger-pipeline lint --yaml-only
-poetry run dagger-pipeline generate-overlay local-base /tmp/quick-test.yaml
+poetry run dagger-pipeline generate-overlay without-pvc /tmp/quick-test.yaml
 
 # Use parallel execution
 poetry run dagger-pipeline lint --parallel

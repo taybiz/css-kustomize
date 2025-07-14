@@ -14,7 +14,7 @@ The project follows the standard Kustomize base + overlay pattern for configurat
 
 ```
 overlays/
-├── local-pvc/          # Local development with PVC
+├── with-pvc/          # Local development with PVC
 │   ├── kustomization.yaml
 │   ├── deployment-patch.yaml
 │   └── pvc.yaml

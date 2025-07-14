@@ -8,8 +8,8 @@ This project implements a comprehensive release name strategy using `app.kuberne
 
 | Overlay       | Release Name      | Purpose                                 |
 | ------------- | ----------------- | --------------------------------------- |
-| `local-base`  | `css-local`       | Local development without PVC           |
-| `local-pvc`   | `css-local-pvc`   | Local development with PVC              |
+| `without-pvc` | `css-local`       | Local development without PVC           |
+| `with-pvc`    | `css-with-pvc`    | Local development with PVC              |
 | `with-pvc`    | `css-with-pvc`    | Production-like with persistent storage |
 | `without-pvc` | `css-without-pvc` | Stateless deployment                    |
 
@@ -82,7 +82,7 @@ kubectl kustomize overlays/with-pvc
 kubectl apply -k overlays/with-pvc
 
 # Generate and save manifests
-kubectl kustomize overlays/local-base > manifests/local-base.yaml
+kubectl kustomize overlays/without-pvc > manifests/without-pvc.yaml
 ```
 
 ### Querying Resources by Release
@@ -195,7 +195,7 @@ The release name strategy integrates with your existing Dagger pipeline:
 ```python
 # Example: Validate release names in pipeline
 def validate_release_names(self):
-    overlays = ["local-base", "local-pvc", "with-pvc", "without-pvc"]
+    overlays = ["with-pvc", "without-pvc"]
     for overlay in overlays:
         result = self.container.with_exec([
             "kubectl", "kustomize", f"overlays/{overlay}"

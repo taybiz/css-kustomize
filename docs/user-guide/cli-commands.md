@@ -107,7 +107,7 @@ poetry run dagger-pipeline generate-overlay [OPTIONS] OVERLAY_NAME OUTPUT_PATH
 
 #### Arguments
 
-- `OVERLAY_NAME`: Name of the overlay to generate (e.g., `with-pvc`, `local-base`)
+- `OVERLAY_NAME`: Name of the overlay to generate (e.g., `with-pvc`, `without-pvc`)
 - `OUTPUT_PATH`: Path where the generated manifest will be saved
 
 #### Examples
@@ -117,7 +117,7 @@ poetry run dagger-pipeline generate-overlay [OPTIONS] OVERLAY_NAME OUTPUT_PATH
 poetry run dagger-pipeline generate-overlay with-pvc manifests/with-pvc.yaml
 
 # Generate local development overlay
-poetry run dagger-pipeline generate-overlay local-base /tmp/local.yaml
+poetry run dagger-pipeline generate-overlay without-pvc /tmp/local.yaml
 ```
 
 ### `security-scan` - Security Scanning
@@ -213,7 +213,7 @@ poetry run dagger-pipeline update-overlay-version [OPTIONS] OVERLAY_NAME VERSION
 poetry run dagger-pipeline update-overlay-version with-pvc 6.0.3
 
 # Preview changes
-poetry run dagger-pipeline update-overlay-version --dry-run local-base 6.1.0
+poetry run dagger-pipeline update-overlay-version --dry-run without-pvc 6.1.0
 ```
 
 ### `version-report` - Version Report
@@ -395,7 +395,7 @@ Run only what you need during development:
 poetry run dagger-pipeline lint --yaml-only
 
 # Only specific overlay
-poetry run dagger-pipeline generate-overlay local-base manifests/local.yaml
+poetry run dagger-pipeline generate-overlay without-pvc manifests/local.yaml
 ```
 
 ### Verbose Output for Debugging

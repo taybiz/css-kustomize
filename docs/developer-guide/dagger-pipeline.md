@@ -361,7 +361,6 @@ def custom_container(self) -> dagger.Container:
 
 ## Next Steps
 
-- Understand [Caching Strategy](caching-strategy.md)
 - Learn about [Contributing](contributing.md)
 - Explore [Architecture](architecture.md)
 - Check [Examples](../examples/advanced-workflows.md)

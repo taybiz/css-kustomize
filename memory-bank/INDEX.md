@@ -36,7 +36,7 @@ Quick navigation guide to all knowledge stored in the css-kustomize memory bank.
 python -m dagger_pipeline.main
 
 # Generate manifests
-kustomize build overlays/local-pvc > manifests/local-pvc.yaml
+kustomize build overlays/with-pvc > manifests/with-pvc.yaml
 
 # Setup development environment
 poetry install && pre-commit install

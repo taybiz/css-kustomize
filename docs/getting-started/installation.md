@@ -176,7 +176,7 @@ poetry run dagger-pipeline --help
 poetry run dagger-pipeline lint --yaml-only
 
 # Generate a test manifest
-poetry run dagger-pipeline generate-overlay local-base /tmp/test-manifest.yaml
+poetry run dagger-pipeline generate-overlay without-pvc /tmp/test-manifest.yaml
 ```
 
 ## Troubleshooting

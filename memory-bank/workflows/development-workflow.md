@@ -36,10 +36,10 @@ python -m dagger_pipeline.main --python-only
 
 ```bash
 # Generate manifests for specific overlay
-kustomize build overlays/local-pvc > manifests/local-pvc.yaml
+kustomize build overlays/with-pvc > manifests/with-pvc.yaml
 
 # Validate generated manifests
-kubectl apply --dry-run=client -f manifests/local-pvc.yaml
+kubectl apply --dry-run=client -f manifests/with-pvc.yaml
 ```
 
 ### 5. Commit Process

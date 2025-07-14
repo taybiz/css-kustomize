@@ -42,7 +42,7 @@ poetry run dagger-pipeline update-version --dry-run 6.1.0
 poetry run dagger-pipeline update-overlay-version with-pvc 6.0.3
 
 # Preview changes for single overlay
-poetry run dagger-pipeline update-overlay-version --dry-run local-base 6.1.0
+poetry run dagger-pipeline update-overlay-version --dry-run without-pvc 6.1.0
 ```
 
 ### Version Reporting

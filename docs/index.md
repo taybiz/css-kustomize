@@ -69,8 +69,6 @@ kubectl kustomize overlays/with-pvc
 css-kustomize/
 ├── base/                    # Base Kubernetes manifests
 ├── overlays/               # Environment-specific overlays
-│   ├── local-base/        # Local development (no PVC)
-│   ├── local-pvc/         # Local development (with PVC)
 │   ├── with-pvc/          # Production with persistent storage
 │   └── without-pvc/       # Stateless deployment
 ├── dagger_pipeline/       # Dagger automation code
@@ -83,12 +81,10 @@ css-kustomize/
 
 ## Available Overlays
 
-| Overlay       | Release Name      | Purpose                | Storage |
-| ------------- | ----------------- | ---------------------- | ------- |
-| `local-base`  | `css-local`       | Local development      | None    |
-| `local-pvc`   | `css-local-pvc`   | Local with persistence | PVC     |
-| `with-pvc`    | `css-with-pvc`    | Production-like        | PVC     |
-| `without-pvc` | `css-without-pvc` | Stateless              | None    |
+| Overlay       | Release Name      | Purpose         | Storage |
+| ------------- | ----------------- | --------------- | ------- |
+| `with-pvc`    | `css-with-pvc`    | Production-like | PVC     |
+| `without-pvc` | `css-without-pvc` | Stateless       | None    |
 
 ## CLI Commands
 
@@ -134,7 +130,6 @@ poetry run dagger-pipeline ci --verbose
 
 - [Architecture](developer-guide/architecture.md) - System design and components
 - [Dagger Pipeline](developer-guide/dagger-pipeline.md) - Pipeline internals
-- [Caching Strategy](developer-guide/caching-strategy.md) - Performance optimization
 - [Contributing](developer-guide/contributing.md) - How to contribute
 
 ### 📖 **API Reference**
