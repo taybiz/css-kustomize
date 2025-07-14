@@ -1,0 +1,60 @@
+---
+# Source: community-solid-server/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+  labels:
+    app.kubernetes.io/name: community-solid-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: community-solid-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: community-solid-server
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: community-solid-server
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+          image: "docker.io/solidproject/community-server:6.0.2"
+          args:
+            - "-l"
+            - "info"
+            - "-b"
+            - "http://community-solid-server.solid/"
+            - "-c"
+            - "config/default.json"
+            - "-f"
+            - "/data/"
+          env: []
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}

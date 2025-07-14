@@ -1,0 +1,15 @@
+---
+# Source: community-solid-server/templates/persistentVolumeClaim.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: community-solid-server-data
+  labels:
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: "6.0.2"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

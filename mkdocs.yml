@@ -1,0 +1,95 @@
+site_name: CSS Kustomize Documentation
+site_description: Kubernetes manifests for Community Solid Server with Dagger automation
+site_url: https://css-kustomize.readthedocs.io/
+repo_url: https://github.com/your-org/css-kustomize
+repo_name: css-kustomize
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - autorefs
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quick-start.md
+      - Configuration: getting-started/configuration.md
+  - User Guide:
+      - CLI Commands: user-guide/cli-commands.md
+      - Kustomize Overlays: user-guide/kustomize-overlays.md
+      - Release Names: user-guide/release-names.md
+      - Version Management: user-guide/version-management.md
+  - Developer Guide:
+      - Architecture: developer-guide/architecture.md
+      - Dagger Pipeline: developer-guide/dagger-pipeline.md
+      - Caching Strategy: developer-guide/caching-strategy.md
+      - Contributing: developer-guide/contributing.md
+  - Examples:
+      - Basic Usage: examples/basic-usage.md
+      - Advanced Workflows: examples/advanced-workflows.md
+      - CI/CD Integration: examples/cicd-integration.md
+  - API Reference: reference/
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-org/css-kustomize
+  version:
+    provider: mike

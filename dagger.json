@@ -1,0 +1,7 @@
+{
+    "name": "css-kustomize",
+    "sdk": "python",
+    "dependencies": [
+        "dagger-io>=0.9.0"
+    ]
+}
