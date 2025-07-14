@@ -346,6 +346,119 @@ def generate_parallel(output_dir: str, verbose: bool):
 
 
 @cli.group()
+def docs():
+    """Documentation building and deployment commands."""
+    pass
+
+
+@docs.command()
+@click.option("--version", help="Version to deploy (defaults to project version)")
+@click.option("--alias", default="latest", help="Version alias (default: latest)")
+@click.option("--set-default", is_flag=True, help="Set this version as default")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+def deploy(version: str | None, alias: str, set_default: bool, verbose: bool):
+    """Deploy documentation with version management using mike."""
+
+    console.print(Panel.fit("📚 CSS Kustomize Documentation Deployment", style="bold blue"))
+
+    async def run_docs_deploy():
+        pipeline = Pipeline(verbose=verbose)
+
+        try:
+            await pipeline.deploy_docs(version, alias, set_default)
+            console.print("🎉 Documentation deployed successfully!", style="bold green")
+
+        except Exception as e:
+            console.print(f"❌ Documentation deployment failed: {e}", style="bold red")
+            sys.exit(1)
+
+    asyncio.run(run_docs_deploy())
+
+
+@docs.command()
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+def build(verbose: bool):
+    """Build documentation locally for testing."""
+
+    console.print(Panel.fit("🏗️ CSS Kustomize Documentation Build", style="bold blue"))
+
+    async def run_docs_build():
+        pipeline = Pipeline(verbose=verbose)
+
+        try:
+            await pipeline.build_docs()
+            console.print("🎉 Documentation built successfully!", style="bold green")
+
+        except Exception as e:
+            console.print(f"❌ Documentation build failed: {e}", style="bold red")
+            sys.exit(1)
+
+    asyncio.run(run_docs_build())
+
+
+@docs.command()
+@click.option("--port", default=8000, help="Port to serve documentation on")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+def serve(port: int, verbose: bool):
+    """Serve documentation locally for development."""
+
+    console.print(Panel.fit("🌐 CSS Kustomize Documentation Server", style="bold blue"))
+
+    async def run_docs_serve():
+        pipeline = Pipeline(verbose=verbose)
+
+        try:
+            await pipeline.serve_docs(port)
+
+        except Exception as e:
+            console.print(f"❌ Documentation server failed: {e}", style="bold red")
+            sys.exit(1)
+
+    asyncio.run(run_docs_serve())
+
+
+@docs.command()
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+def list_versions(verbose: bool):
+    """List all deployed documentation versions."""
+
+    console.print(Panel.fit("📋 CSS Kustomize Documentation Versions", style="bold blue"))
+
+    async def run_list_versions():
+        pipeline = Pipeline(verbose=verbose)
+
+        try:
+            await pipeline.list_doc_versions()
+
+        except Exception as e:
+            console.print(f"❌ Failed to list versions: {e}", style="bold red")
+            sys.exit(1)
+
+    asyncio.run(run_list_versions())
+
+
+@docs.command()
+@click.argument("version")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+def delete_version(version: str, verbose: bool):
+    """Delete a specific documentation version."""
+
+    console.print(Panel.fit("🗑️ CSS Kustomize Documentation Version Deletion", style="bold blue"))
+
+    async def run_delete_version():
+        pipeline = Pipeline(verbose=verbose)
+
+        try:
+            await pipeline.delete_doc_version(version)
+
+        except Exception as e:
+            console.print(f"❌ Failed to delete version: {e}", style="bold red")
+            sys.exit(1)
+
+    asyncio.run(run_delete_version())
+
+
+@cli.group()
 def version():
     """Version management commands for image tags and labels."""
     pass

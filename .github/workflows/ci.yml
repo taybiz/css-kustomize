@@ -60,6 +60,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for mike
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -84,12 +86,21 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --with=docs
 
-      - name: Build documentation
-        run: poetry run mkdocs build --strict
+      - name: Configure Git for mike
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          force_orphan: true
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          VERSION=$(poetry version --short)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Deploy documentation with mike
+        run: |
+          # Deploy the current version
+          poetry run mike deploy --push --update-aliases ${{ steps.get_version.outputs.version }} latest
+          # Set latest as the default version
+          poetry run mike set-default --push latest

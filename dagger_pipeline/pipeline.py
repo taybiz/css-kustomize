@@ -778,3 +778,166 @@ class Pipeline:
         except Exception as e:
             console.print(f"❌ Parallel generation failed: {e}", style="red")
             raise
+
+    async def _get_docs_container(self, client: dagger.Client) -> dagger.Container:
+        """Get Python container with documentation dependencies installed.
+
+        Creates a containerized Python environment with Poetry package manager
+        and installs the project's documentation dependencies including MkDocs,
+        mike, and related tools.
+
+        Args:
+            client: Dagger client instance for container operations.
+
+        Returns:
+            dagger.Container: Configured Python container with docs dependencies.
+        """
+        return (
+            client.container()
+            .from_("python:3.11-slim")
+            .with_exec(["apt-get", "update"])
+            .with_exec(["apt-get", "install", "-y", "curl", "git"])
+            .with_exec(["pip", "install", "poetry"])
+            .with_directory("/src", client.host().directory("."))
+            .with_workdir("/src")
+            .with_exec(["poetry", "config", "virtualenvs.create", "false"])
+            .with_exec(["poetry", "install", "--with=docs"])
+        )
+
+    async def _get_project_version(self) -> str:
+        """Get the current project version from pyproject.toml."""
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+            version_result = await container.with_exec(["poetry", "version", "--short"]).stdout()
+            return version_result.strip()
+
+    async def build_docs(self) -> None:
+        """Build documentation locally using MkDocs."""
+        if self.verbose:
+            console.print("🏗️ Building documentation...")
+
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+
+            # Build documentation
+            await container.with_exec(["poetry", "run", "mkdocs", "build", "--strict"]).stdout()
+
+            # Copy built site back to host
+            site_dir = self.project_root / "site"
+            site_dir.mkdir(exist_ok=True)
+
+            # Export the built site
+            built_site = container.directory("site")
+            await built_site.export(str(site_dir))
+
+            console.print("✅ Documentation built successfully", style="green")
+            console.print(f"📁 Built site available at: {site_dir}")
+
+    async def serve_docs(self, port: int = 8000) -> None:
+        """Serve documentation locally for development."""
+        if self.verbose:
+            console.print(f"🌐 Starting documentation server on port {port}...")
+
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+
+            console.print(f"📚 Documentation server starting at http://localhost:{port}")
+            console.print("Press Ctrl+C to stop the server")
+
+            # Serve documentation (this will run until interrupted)
+            await container.with_exec(["poetry", "run", "mkdocs", "serve", "--dev-addr", f"0.0.0.0:{port}"]).stdout()
+
+    async def deploy_docs(
+        self,
+        version: str | None = None,
+        alias: str = "latest",
+        set_default: bool = False,
+    ) -> None:
+        """Deploy documentation with version management using mike.
+
+        Args:
+            version: Version to deploy. If None, uses project version from pyproject.toml
+            alias: Version alias (default: "latest")
+            set_default: Whether to set this version as the default
+        """
+        if self.verbose:
+            console.print("📚 Deploying documentation with mike...")
+
+        # Get version if not provided
+        if version is None:
+            version = await self._get_project_version()
+            if self.verbose:
+                console.print(f"Using project version: {version}")
+
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+
+            # Configure git for mike
+            container = container.with_exec(["git", "config", "user.name", "dagger-pipeline"]).with_exec(
+                ["git", "config", "user.email", "pipeline@css-kustomize.local"]
+            )
+
+            # Deploy with mike
+            deploy_cmd = [
+                "poetry",
+                "run",
+                "mike",
+                "deploy",
+                "--update-aliases",
+                version,
+                alias,
+            ]
+
+            if self.verbose:
+                console.print(f"Deploying version {version} with alias {alias}")
+
+            await container.with_exec(deploy_cmd).stdout()
+
+            # Set as default if requested
+            if set_default:
+                if self.verbose:
+                    console.print(f"Setting {alias} as default version")
+
+                await container.with_exec(["poetry", "run", "mike", "set-default", alias]).stdout()
+
+            console.print(f"✅ Documentation deployed: {version} ({alias})", style="green")
+
+    async def list_doc_versions(self) -> None:
+        """List all deployed documentation versions."""
+        if self.verbose:
+            console.print("📋 Listing documentation versions...")
+
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+
+            try:
+                versions_result = await container.with_exec(["poetry", "run", "mike", "list"]).stdout()
+
+                console.print("\n📚 Deployed Documentation Versions:", style="bold blue")
+                console.print("=" * 40)
+                console.print(versions_result)
+                console.print("=" * 40)
+
+            except Exception as e:
+                console.print(
+                    "No versions deployed yet or git repository not initialized",
+                    style="yellow",
+                )
+                if self.verbose:
+                    console.print(f"Error: {e}", style="red")
+
+    async def delete_doc_version(self, version: str) -> None:
+        """Delete a specific documentation version.
+
+        Args:
+            version: Version to delete
+        """
+        if self.verbose:
+            console.print(f"🗑️ Deleting documentation version: {version}")
+
+        async with self._get_client() as client:
+            container = await self._get_docs_container(client)
+
+            await container.with_exec(["poetry", "run", "mike", "delete", version]).stdout()
+
+            console.print(f"✅ Deleted documentation version: {version}", style="green")

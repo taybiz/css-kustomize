@@ -46,6 +46,7 @@ mkdocs-literate-nav = "^0.6.0"
 mkdocs-section-index = "^0.3.0"
 mkdocs-autorefs = "^1.4.2"
 griffe = "^1.4.0"
+mike = "^2.1.0"
 
 [tool.ruff]
 line-length = 120
