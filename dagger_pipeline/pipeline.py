@@ -165,7 +165,9 @@ class Pipeline:
         async with self._get_client() as client:
             container = await self._get_python_container(client)
 
-            result = await container.with_exec(["poetry", "run", "yamllint", "."]).stdout()
+            result = await container.with_exec(
+                ["poetry", "run", "yamllint", "."]
+            ).stdout()
 
             if self.verbose:
                 console.print(result)
@@ -184,7 +186,9 @@ class Pipeline:
             await container.with_exec(["poetry", "run", "ruff", "check", "."]).stdout()
 
             # Run ruff format check
-            await container.with_exec(["poetry", "run", "ruff", "format", "--check", "."]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "ruff", "format", "--check", "."]
+            ).stdout()
 
             console.print("✅ Python linting passed", style="green")
 
@@ -216,7 +220,9 @@ class Pipeline:
                     ]
                 ).stdout()
 
-                md_files = [f.strip() for f in md_files_result.strip().split("\n") if f.strip()]
+                md_files = [
+                    f.strip() for f in md_files_result.strip().split("\n") if f.strip()
+                ]
 
                 if not md_files:
                     console.print("📝 No markdown files found to lint", style="yellow")
@@ -226,13 +232,19 @@ class Pipeline:
                     console.print(f"Found {len(md_files)} markdown files to check")
 
                 # Run mdformat check (dry-run to validate formatting)
-                await container.with_exec(["poetry", "run", "mdformat", "--check"] + md_files).stdout()
+                await container.with_exec(
+                    ["poetry", "run", "mdformat", "--check"] + md_files
+                ).stdout()
 
                 console.print("✅ Markdown linting passed", style="green")
 
             except Exception as e:
-                console.print(f"❌ Markdown formatting issues found: {str(e)}", style="red")
-                raise Exception("Markdown files need formatting. Run 'poetry run mdformat .' to fix.") from e
+                console.print(
+                    f"❌ Markdown formatting issues found: {str(e)}", style="red"
+                )
+                raise Exception(
+                    "Markdown files need formatting. Run 'poetry run mdformat .' to fix."
+                ) from e
 
     async def validate_kustomize(self) -> None:
         """Validate Kustomize configurations."""
@@ -254,7 +266,9 @@ class Pipeline:
                         if self.verbose:
                             console.print(f"Validating overlay: {overlay_name}")
 
-                        await container.with_exec(["kustomize", "build", f"overlays/{overlay_name}/"]).stdout()
+                        await container.with_exec(
+                            ["kustomize", "build", f"overlays/{overlay_name}/"]
+                        ).stdout()
 
             console.print("✅ Kustomize validation passed", style="green")
 
@@ -283,7 +297,9 @@ class Pipeline:
                         ).stdout()
 
                         # Check for security issues
-                        issues = self._check_security_issues(manifest_content, overlay_name)
+                        issues = self._check_security_issues(
+                            manifest_content, overlay_name
+                        )
                         security_issues += issues
 
             if security_issues > 0:
@@ -310,7 +326,9 @@ class Pipeline:
             security_issues += issues
 
         if security_issues > 0:
-            raise Exception(f"Found {security_issues} security issues in generated manifests")
+            raise Exception(
+                f"Found {security_issues} security issues in generated manifests"
+            )
 
         console.print("✅ Security scan on generated manifests passed", style="green")
 
@@ -347,7 +365,9 @@ class Pipeline:
             container = await self._get_kustomize_container(client)
 
             # Generate manifest
-            manifest_content = await container.with_exec(["kustomize", "build", f"overlays/{overlay_name}/"]).stdout()
+            manifest_content = await container.with_exec(
+                ["kustomize", "build", f"overlays/{overlay_name}/"]
+            ).stdout()
 
             # Write to output directory
             output_path = Path(output_dir)
@@ -417,7 +437,9 @@ class Pipeline:
             container = await self._get_python_container(client)
 
             # Install pre-commit hooks
-            await container.with_exec(["poetry", "run", "pre-commit", "install"]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "pre-commit", "install"]
+            ).stdout()
 
             console.print("✅ Development environment setup completed", style="green")
 
@@ -429,7 +451,9 @@ class Pipeline:
         async with self._get_client() as client:
             container = await self._get_python_container(client)
 
-            await container.with_exec(["poetry", "run", "pre-commit", "run", "--all-files"]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "pre-commit", "run", "--all-files"]
+            ).stdout()
 
             console.print("✅ Pre-commit hooks passed", style="green")
 
@@ -457,10 +481,14 @@ class Pipeline:
         pattern = r"^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$"
         return bool(re.match(pattern, version))
 
-    async def update_overlay_version(self, overlay_name: str, version: str, dry_run: bool = False) -> None:
+    async def update_overlay_version(
+        self, overlay_name: str, version: str, dry_run: bool = False
+    ) -> None:
         """Update version for a specific overlay."""
         if not self._validate_version_format(version):
-            raise Exception(f"Invalid version format: {version}. Expected X.Y.Z or X.Y.Z-prerelease")
+            raise Exception(
+                f"Invalid version format: {version}. Expected X.Y.Z or X.Y.Z-prerelease"
+            )
 
         overlay_path = self.project_root / "overlays" / overlay_name
         if not overlay_path.exists():
@@ -485,7 +513,11 @@ class Pipeline:
                         f"overlays/{overlay_name}/kustomization.yaml",
                     ]
                 ).stdout()
-                current_tag = current_tag_result.strip() if current_tag_result.strip() != "null" else "not set"
+                current_tag = (
+                    current_tag_result.strip()
+                    if current_tag_result.strip() != "null"
+                    else "not set"
+                )
 
                 current_version_result = await container.with_exec(
                     [
@@ -495,11 +527,17 @@ class Pipeline:
                     ]
                 ).stdout()
                 current_version = (
-                    current_version_result.strip() if current_version_result.strip() != "null" else "not set"
+                    current_version_result.strip()
+                    if current_version_result.strip() != "null"
+                    else "not set"
                 )
 
-                console.print(f"  [DRY RUN] Would update image tag from '{current_tag}' to '{version}'")
-                console.print(f"  [DRY RUN] Would update version label from '{current_version}' to '{version}'")
+                console.print(
+                    f"  [DRY RUN] Would update image tag from '{current_tag}' to '{version}'"
+                )
+                console.print(
+                    f"  [DRY RUN] Would update version label from '{current_version}' to '{version}'"
+                )
                 return
 
             # Update image tag
@@ -555,7 +593,9 @@ class Pipeline:
                 console.print(f"  ✅ Added deployment version patch: {version}")
 
             # Copy updated file back to host
-            updated_content = await container.file(f"overlays/{overlay_name}/kustomization.yaml").contents()
+            updated_content = await container.file(
+                f"overlays/{overlay_name}/kustomization.yaml"
+            ).contents()
             kustomization_file.write_text(updated_content)
 
             console.print(f"  ✅ Updated image tag to: {version}")
@@ -564,7 +604,9 @@ class Pipeline:
     async def update_all_versions(self, version: str, dry_run: bool = False) -> None:
         """Update version for all overlays."""
         if not self._validate_version_format(version):
-            raise Exception(f"Invalid version format: {version}. Expected X.Y.Z or X.Y.Z-prerelease")
+            raise Exception(
+                f"Invalid version format: {version}. Expected X.Y.Z or X.Y.Z-prerelease"
+            )
 
         overlays_dir = self.project_root / "overlays"
         if not overlays_dir.exists():
@@ -581,7 +623,9 @@ class Pipeline:
             await self.update_overlay_version(overlay_name, version, dry_run)
 
         if not dry_run:
-            console.print(f"✅ Updated {len(overlay_names)} overlays to version: {version}")
+            console.print(
+                f"✅ Updated {len(overlay_names)} overlays to version: {version}"
+            )
 
     async def validate_version_consistency(self) -> None:
         """Validate version consistency across all overlays.
@@ -624,7 +668,11 @@ class Pipeline:
                                 kustomization_file,
                             ]
                         ).stdout()
-                        image_tag = image_tag_result.strip() if image_tag_result.strip() != "null" else None
+                        image_tag = (
+                            image_tag_result.strip()
+                            if image_tag_result.strip() != "null"
+                            else None
+                        )
                     except:
                         image_tag = None
 
@@ -637,7 +685,11 @@ class Pipeline:
                                 kustomization_file,
                             ]
                         ).stdout()
-                        version_label = version_label_result.strip() if version_label_result.strip() != "null" else None
+                        version_label = (
+                            version_label_result.strip()
+                            if version_label_result.strip() != "null"
+                            else None
+                        )
                     except:
                         version_label = None
 
@@ -645,7 +697,9 @@ class Pipeline:
                     if not image_tag:
                         issues.append(f"{overlay_name}: missing image tag")
                     elif not self._validate_version_format(image_tag):
-                        issues.append(f"{overlay_name}: invalid image tag format '{image_tag}'")
+                        issues.append(
+                            f"{overlay_name}: invalid image tag format '{image_tag}'"
+                        )
 
                     # Validate version label presence and consistency with project version
                     if not version_label:
@@ -693,7 +747,11 @@ class Pipeline:
                                 kustomization_file,
                             ]
                         ).stdout()
-                        image_tag = image_tag_result.strip() if image_tag_result.strip() != "null" else "not set"
+                        image_tag = (
+                            image_tag_result.strip()
+                            if image_tag_result.strip() != "null"
+                            else "not set"
+                        )
                     except:
                         image_tag = "not set"
 
@@ -707,7 +765,9 @@ class Pipeline:
                             ]
                         ).stdout()
                         version_label = (
-                            version_label_result.strip() if version_label_result.strip() != "null" else "not set"
+                            version_label_result.strip()
+                            if version_label_result.strip() != "null"
+                            else "not set"
                         )
                     except:
                         version_label = "not set"
@@ -722,7 +782,9 @@ class Pipeline:
                             ]
                         ).stdout()
                         instance_label = (
-                            instance_label_result.strip() if instance_label_result.strip() != "null" else "not set"
+                            instance_label_result.strip()
+                            if instance_label_result.strip() != "null"
+                            else "not set"
                         )
                     except:
                         instance_label = "not set"
@@ -742,7 +804,9 @@ class Pipeline:
                             missing.append("image tag")
                         if version_label == "not set":
                             missing.append("version label")
-                        console.print(f"   Status: ⚠️ Missing {', '.join(missing)}", style="yellow")
+                        console.print(
+                            f"   Status: ⚠️ Missing {', '.join(missing)}", style="yellow"
+                        )
 
             console.print("\n" + "=" * 50)
             console.print("📊 Report completed", style="bold blue")
@@ -790,7 +854,10 @@ class Pipeline:
             return
 
         # Generate all overlays in parallel
-        tasks = [self.generate_overlay(overlay_name, output_dir) for overlay_name in overlay_names]
+        tasks = [
+            self.generate_overlay(overlay_name, output_dir)
+            for overlay_name in overlay_names
+        ]
 
         try:
             await asyncio.gather(*tasks)
@@ -828,7 +895,9 @@ class Pipeline:
         """Get the current project version from pyproject.toml."""
         async with self._get_client() as client:
             container = await self._get_docs_container(client)
-            version_result = await container.with_exec(["poetry", "version", "--short"]).stdout()
+            version_result = await container.with_exec(
+                ["poetry", "version", "--short"]
+            ).stdout()
             return version_result.strip()
 
     async def build_docs(self) -> None:
@@ -840,7 +909,9 @@ class Pipeline:
             container = await self._get_docs_container(client)
 
             # Build documentation
-            await container.with_exec(["poetry", "run", "mkdocs", "build", "--strict"]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "mkdocs", "build", "--strict"]
+            ).stdout()
 
             # Copy built site back to host
             site_dir = self.project_root / "site"
@@ -861,17 +932,22 @@ class Pipeline:
         async with self._get_client() as client:
             container = await self._get_docs_container(client)
 
-            console.print(f"📚 Documentation server starting at http://localhost:{port}")
+            console.print(
+                f"📚 Documentation server starting at http://localhost:{port}"
+            )
             console.print("Press Ctrl+C to stop the server")
 
             # Serve documentation (this will run until interrupted)
-            await container.with_exec(["poetry", "run", "mkdocs", "serve", "--dev-addr", f"0.0.0.0:{port}"]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "mkdocs", "serve", "--dev-addr", f"0.0.0.0:{port}"]
+            ).stdout()
 
     async def deploy_docs(
         self,
         version: str | None = None,
         alias: str = "latest",
         set_default: bool = False,
+        title: str | None = None,
     ) -> None:
         """Deploy documentation with version management using mike.
 
@@ -879,6 +955,7 @@ class Pipeline:
             version: Version to deploy. If None, uses project version from pyproject.toml
             alias: Version alias (default: "latest")
             set_default: Whether to set this version as the default
+            title: Version title for display. If None, uses version as title
         """
         if self.verbose:
             console.print("📚 Deploying documentation with mike...")
@@ -889,27 +966,35 @@ class Pipeline:
             if self.verbose:
                 console.print(f"Using project version: {version}")
 
+        # Use version as title if not provided
+        if title is None:
+            title = version
+
         async with self._get_client() as client:
             container = await self._get_docs_container(client)
 
             # Configure git for mike
-            container = container.with_exec(["git", "config", "user.name", "dagger-pipeline"]).with_exec(
-                ["git", "config", "user.email", "pipeline@css-kustomize.local"]
-            )
+            container = container.with_exec(
+                ["git", "config", "user.name", "dagger-pipeline"]
+            ).with_exec(["git", "config", "user.email", "pipeline@css-kustomize.local"])
 
-            # Deploy with mike
+            # Deploy with mike using explicit title
             deploy_cmd = [
                 "poetry",
                 "run",
                 "mike",
                 "deploy",
                 "--update-aliases",
+                "--title",
+                title,
                 version,
                 alias,
             ]
 
             if self.verbose:
-                console.print(f"Deploying version {version} with alias {alias}")
+                console.print(
+                    f"Deploying version {version} (title: {title}) with alias {alias}"
+                )
 
             await container.with_exec(deploy_cmd).stdout()
 
@@ -918,9 +1003,13 @@ class Pipeline:
                 if self.verbose:
                     console.print(f"Setting {alias} as default version")
 
-                await container.with_exec(["poetry", "run", "mike", "set-default", alias]).stdout()
+                await container.with_exec(
+                    ["poetry", "run", "mike", "set-default", alias]
+                ).stdout()
 
-            console.print(f"✅ Documentation deployed: {version} ({alias})", style="green")
+            console.print(
+                f"✅ Documentation deployed: {version} ({alias})", style="green"
+            )
 
     async def list_doc_versions(self) -> None:
         """List all deployed documentation versions."""
@@ -931,9 +1020,13 @@ class Pipeline:
             container = await self._get_docs_container(client)
 
             try:
-                versions_result = await container.with_exec(["poetry", "run", "mike", "list"]).stdout()
+                versions_result = await container.with_exec(
+                    ["poetry", "run", "mike", "list"]
+                ).stdout()
 
-                console.print("\n📚 Deployed Documentation Versions:", style="bold blue")
+                console.print(
+                    "\n📚 Deployed Documentation Versions:", style="bold blue"
+                )
                 console.print("=" * 40)
                 console.print(versions_result)
                 console.print("=" * 40)
@@ -958,6 +1051,8 @@ class Pipeline:
         async with self._get_client() as client:
             container = await self._get_docs_container(client)
 
-            await container.with_exec(["poetry", "run", "mike", "delete", version]).stdout()
+            await container.with_exec(
+                ["poetry", "run", "mike", "delete", version]
+            ).stdout()
 
             console.print(f"✅ Deleted documentation version: {version}", style="green")

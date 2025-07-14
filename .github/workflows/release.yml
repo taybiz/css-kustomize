@@ -202,10 +202,9 @@ jobs:
 
       - name: Deploy release documentation with mike
         run: |
-          # Deploy the release version
-          poetry run mike deploy --push --update-aliases ${{ needs.validate-release.outputs.version }} stable
+          # Deploy the release version with proper title
+          poetry run dagger-pipeline docs deploy --version ${{ needs.validate-release.outputs.version }} --alias stable --title "v${{ needs.validate-release.outputs.version }}"
           # If this is not a pre-release, also update latest
           if [[ ! "${{ needs.validate-release.outputs.version }}" =~ - ]]; then
-            poetry run mike deploy --push --update-aliases ${{ needs.validate-release.outputs.version }} latest
-            poetry run mike set-default --push latest
+            poetry run dagger-pipeline docs deploy --version ${{ needs.validate-release.outputs.version }} --alias latest --title "v${{ needs.validate-release.outputs.version }}" --set-default
           fi
