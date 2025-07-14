@@ -180,7 +180,6 @@ stages:
 
 variables:
   PYTHON_VERSION: "3.11"
-  POETRY_VERSION: "1.6.1"
 
 before_script:
   - apt-get update -qq && apt-get install -y -qq git curl
@@ -425,7 +424,6 @@ pipeline {
     agent any
     
     environment {
-        POETRY_VERSION = '1.6.1'
         PYTHON_VERSION = '3.11'
     }
     
@@ -433,7 +431,7 @@ pipeline {
         stage('Setup') {
             steps {
                 sh '''
-                    python3 -m pip install poetry==${POETRY_VERSION}
+                    python3 -m pip install poetry
                     poetry install
                 '''
             }
