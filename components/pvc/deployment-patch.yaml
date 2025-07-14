@@ -1,3 +1,4 @@
+---
 - op: replace
   path: /spec/template/spec/volumes/0
   value:

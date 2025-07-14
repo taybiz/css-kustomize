@@ -16,7 +16,7 @@ See the [Installation Guide](installation.md) for detailed setup instructions.
 1. **Clone and setup**:
 
    ```bash
-   git clone https://github.com/your-org/css-kustomize.git
+   git clone https://github.com/taybiz/css-kustomize.git
    cd css-kustomize
    poetry install
    ```

@@ -26,7 +26,7 @@ Before installing CSS Kustomize, ensure you have the following tools installed:
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-org/css-kustomize.git
+   git clone https://github.com/taybiz/css-kustomize.git
    cd css-kustomize
    ```
 
@@ -60,7 +60,7 @@ For active development on the CSS Kustomize project:
 1. **Clone and enter the repository**:
 
    ```bash
-   git clone https://github.com/your-org/css-kustomize.git
+   git clone https://github.com/taybiz/css-kustomize.git
    cd css-kustomize
    ```
 
@@ -240,9 +240,9 @@ brew services list | grep docker  # macOS
 If you encounter issues not covered here:
 
 1. **Check the logs**: Run commands with `--verbose` flag for detailed output
-1. **Search existing issues**: Check [GitHub Issues](https://github.com/your-org/css-kustomize/issues)
+1. **Search existing issues**: Check [GitHub Issues](https://github.com/taybiz/css-kustomize/issues)
 1. **Create a new issue**: Include your OS, Python version, and error messages
-1. **Join discussions**: Use [GitHub Discussions](https://github.com/your-org/css-kustomize/discussions)
+1. **Join discussions**: Use [GitHub Discussions](https://github.com/taybiz/css-kustomize/discussions)
 
 ## Next Steps
 

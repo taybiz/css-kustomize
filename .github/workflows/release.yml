@@ -1,0 +1,379 @@
+---
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.2.3)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.7.1"
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      tag: ${{ steps.extract.outputs.tag }}
+    steps:
+      - name: Extract version from tag
+        id: extract
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ github.event.inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "❌ Invalid tag format: $TAG"
+            echo "Expected format: vX.Y.Z or vX.Y.Z-prerelease"
+            exit 1
+          fi
+
+          VERSION="${TAG#v}"
+          echo "✅ Tag format is valid: $TAG"
+          echo "✅ Version extracted: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+  build-release:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: [validate-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Run complete CI pipeline
+        run: poetry run dagger-pipeline ci --verbose
+
+      - name: Generate all manifests
+        run: poetry run dagger-pipeline generate --verbose
+
+      - name: Validate version consistency
+        run: poetry run dagger-pipeline version validate --verbose
+
+      - name: Generate version report
+        run: poetry run dagger-pipeline version report --verbose
+
+      - name: Create release archive
+        run: |
+          mkdir -p release-artifacts
+
+          # Copy manifests
+          cp -r manifests/ release-artifacts/
+
+          # Copy base configurations
+          cp -r base/ release-artifacts/
+          cp -r overlays/ release-artifacts/
+          cp -r components/ release-artifacts/
+
+          # Copy documentation
+          cp README.md release-artifacts/
+          cp LICENSE release-artifacts/
+          cp VERSION_STRATEGY.md release-artifacts/
+          cp RELEASE_NAME_STRATEGY.md release-artifacts/
+
+          # Create version info file
+          cat > release-artifacts/VERSION_INFO.md << EOF
+          # CSS Kustomize Release ${{ needs.validate-release.outputs.tag }}
+
+          **Version:** ${{ needs.validate-release.outputs.version }}
+          **Release Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Git Commit:** ${{ github.sha }}
+          **Git Ref:** ${{ github.ref }}
+
+          ## Included Manifests
+
+          EOF
+
+          # List generated manifests
+          echo "### Generated Kubernetes Manifests" >> release-artifacts/VERSION_INFO.md
+          echo "" >> release-artifacts/VERSION_INFO.md
+          for manifest in manifests/*.yaml; do
+            if [[ -f "$manifest" ]]; then
+              echo "- \`$(basename "$manifest")\`" >> release-artifacts/VERSION_INFO.md
+            fi
+          done
+
+          echo "" >> release-artifacts/VERSION_INFO.md
+          echo "### Available Overlays" >> release-artifacts/VERSION_INFO.md
+          echo "" >> release-artifacts/VERSION_INFO.md
+          for overlay in overlays/*/; do
+            if [[ -d "$overlay" ]]; then
+              overlay_name=$(basename "$overlay")
+              echo "- \`$overlay_name\`" >> release-artifacts/VERSION_INFO.md
+            fi
+          done
+
+          # Create tarball
+          tar -czf css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz -C release-artifacts .
+
+          # Create zip file
+          cd release-artifacts
+          zip -r ../css-kustomize-${{ needs.validate-release.outputs.version }}.zip .
+          cd ..
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-artifacts-${{ needs.validate-release.outputs.version }}
+          path: |
+            css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz
+            css-kustomize-${{ needs.validate-release.outputs.version }}.zip
+            release-artifacts/
+          retention-days: 90
+
+  security-scan-release:
+    name: Security Scan Release
+    runs-on: ubuntu-latest
+    needs: [build-release]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-artifacts-${{ needs.validate-release.outputs.version }}
+
+      - name: Run comprehensive security scan
+        run: |
+          # Extract and scan manifests
+          mkdir -p scan-manifests
+          tar -xzf css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz -C scan-manifests
+
+          # Run security scan on extracted manifests
+          poetry run python -c "
+          import asyncio
+          from dagger_pipeline.pipeline import Pipeline
+
+          async def main():
+              pipeline = Pipeline(verbose=True)
+              await pipeline.security_scan_generated('scan-manifests/manifests')
+
+          asyncio.run(main())
+          "
+
+  create-github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, build-release, security-scan-release]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-artifacts-${{ needs.validate-release.outputs.version }}
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          cat > release-notes.md << EOF
+          # CSS Kustomize ${{ needs.validate-release.outputs.tag }}
+
+          Kubernetes manifests for Community Solid Server with comprehensive Dagger automation pipeline.
+
+          ## 🚀 What's Included
+
+          - **Kubernetes Manifests**: Pre-built manifests for all overlays
+          - **Kustomize Configurations**: Base configurations and overlays
+          - **Components**: Reusable Kustomize components
+          - **Documentation**: Complete setup and usage documentation
+
+          ## 📦 Available Downloads
+
+          - **\`css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz\`**: Complete release archive (tar.gz)
+          - **\`css-kustomize-${{ needs.validate-release.outputs.version }}.zip\`**: Complete release archive (zip)
+
+          ## 🔧 Available Overlays
+
+          EOF
+
+          # List overlays
+          for overlay in overlays/*/; do
+            if [[ -d "$overlay" ]]; then
+              overlay_name=$(basename "$overlay")
+              readme_desc=$(head -1 "$overlay/README.md" 2>/dev/null || \
+                echo "Kustomize overlay configuration")
+              echo "- **\`$overlay_name\`**: $readme_desc" >> release-notes.md
+            fi
+          done
+
+          cat >> release-notes.md << EOF
+
+          ## 🛡️ Security
+
+          All manifests have been scanned for security issues and validated against best practices.
+
+          ## 📖 Usage
+
+          \`\`\`bash
+          # Download and extract
+          release_url="https://github.com/taybiz/css-kustomize/releases/download"
+          release_file="css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz"
+          wget \$release_url/${{ needs.validate-release.outputs.tag }}/\$release_file
+          tar -xzf \$release_file
+
+          # Apply manifests directly
+          kubectl apply -f manifests/with-pvc.yaml
+
+          # Or use with Kustomize
+          kubectl apply -k overlays/with-pvc/
+          \`\`\`
+
+          ## 🔄 Pipeline Commands
+
+          \`\`\`bash
+          # Run complete CI pipeline
+          poetry run dagger-pipeline ci
+
+          # Generate manifests
+          poetry run dagger-pipeline generate
+
+          # Update versions
+          poetry run dagger-pipeline version update 1.2.3
+          \`\`\`
+
+          ---
+
+          **Full Changelog**: https://github.com/taybiz/css-kustomize/compare/v${{ needs.validate-release.outputs.version }}
+          EOF
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate-release.outputs.tag }}
+          name: CSS Kustomize ${{ needs.validate-release.outputs.tag }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' || contains(needs.validate-release.outputs.version, '-') }}
+          files: |
+            css-kustomize-${{ needs.validate-release.outputs.version }}.tar.gz
+            css-kustomize-${{ needs.validate-release.outputs.version }}.zip
+          generate_release_notes: true
+
+  update-documentation:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    needs: [create-github-release]
+    if: vars.LOCAL_DEV != 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --with=docs
+
+      - name: Build documentation with release info
+        run: |
+          # Add release info to docs
+          cat > docs/releases.md << EOF
+          # Releases
+
+          ## Latest Release: ${{ needs.validate-release.outputs.tag }}
+
+          **Version:** ${{ needs.validate-release.outputs.version }}
+          **Release Date:** $(date -u +"%Y-%m-%d")
+
+          [Download Latest Release](https://github.com/taybiz/css-kustomize/releases/latest)
+
+          ## All Releases
+
+          View all releases on the [GitHub Releases page](https://github.com/taybiz/css-kustomize/releases).
+          EOF
+
+          # Build documentation
+          poetry run mkdocs build --strict
+
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+          commit_message: "docs: update for release ${{ needs.validate-release.outputs.tag }}"

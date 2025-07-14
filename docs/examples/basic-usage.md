@@ -8,7 +8,7 @@ Common workflows and usage patterns for CSS Kustomize.
 
 ```bash
 # Clone and setup
-git clone https://github.com/your-org/css-kustomize.git
+git clone https://github.com/taybiz/css-kustomize.git
 cd css-kustomize
 poetry install
 

@@ -76,9 +76,7 @@ def cli():
 
 @cli.command()
 @click.option("--yaml-only", is_flag=True, help="Run only YAML linting")
-@click.option(
-    "--python-only", is_flag=True, help="Run only Python linting and formatting"
-)
+@click.option("--python-only", is_flag=True, help="Run only Python linting and formatting")
 @click.option("--kustomize-only", is_flag=True, help="Run only Kustomize validation")
 @click.option("--security-only", is_flag=True, help="Run only security checks")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
@@ -149,9 +147,7 @@ def lint(
 
 @cli.command()
 @click.option("--overlay", help="Specific overlay to generate (e.g., local-pvc)")
-@click.option(
-    "--output-dir", default="manifests", help="Output directory for generated manifests"
-)
+@click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def generate(overlay: str | None, output_dir: str, verbose: bool):
     """Generate Kustomize manifests for overlays.
@@ -203,9 +199,7 @@ def generate(overlay: str | None, output_dir: str, verbose: bool):
 
 
 @cli.command()
-@click.option(
-    "--output-dir", default="manifests", help="Output directory for generated manifests"
-)
+@click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def ci(output_dir: str, verbose: bool):
     """Run complete CI pipeline (lint, validate, generate, security scan).
@@ -303,9 +297,7 @@ def lint_parallel(
 ):
     """Run linting checks in parallel for maximum speed (cached)."""
 
-    console.print(
-        Panel.fit("🚀 CSS Kustomize Parallel Linting Pipeline", style="bold blue")
-    )
+    console.print(Panel.fit("🚀 CSS Kustomize Parallel Linting Pipeline", style="bold blue"))
 
     async def run_lint_parallel():
         pipeline = Pipeline(verbose=verbose)
@@ -332,25 +324,19 @@ def lint_parallel(
 
 
 @cli.command()
-@click.option(
-    "--output-dir", default="manifests", help="Output directory for generated manifests"
-)
+@click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def generate_parallel(output_dir: str, verbose: bool):
     """Generate all Kustomize manifests in parallel for maximum speed."""
 
-    console.print(
-        Panel.fit("🚀 CSS Kustomize Parallel Generation Pipeline", style="bold blue")
-    )
+    console.print(Panel.fit("🚀 CSS Kustomize Parallel Generation Pipeline", style="bold blue"))
 
     async def run_generate_parallel():
         pipeline = Pipeline(verbose=verbose)
 
         try:
             await pipeline.generate_all_overlays_parallel(output_dir)
-            console.print(
-                "🎉 Parallel manifest generation completed!", style="bold green"
-            )
+            console.print("🎉 Parallel manifest generation completed!", style="bold green")
 
         except Exception as e:
             console.print(f"❌ Parallel generation failed: {e}", style="bold red")
@@ -367,12 +353,8 @@ def version():
 
 @version.command()
 @click.argument("new_version")
-@click.option(
-    "--overlay", help="Update specific overlay only (e.g., local-base, with-pvc)"
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Show what would be changed without making changes"
-)
+@click.option("--overlay", help="Update specific overlay only (e.g., local-base, with-pvc)")
+@click.option("--dry-run", is_flag=True, help="Show what would be changed without making changes")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def update(new_version: str, overlay: str | None, dry_run: bool, verbose: bool):
     """Update image tags and version labels across overlays."""
@@ -389,13 +371,9 @@ def update(new_version: str, overlay: str | None, dry_run: bool, verbose: bool):
                 await pipeline.update_all_versions(new_version, dry_run)
 
             if dry_run:
-                console.print(
-                    "🔍 Dry run completed. No changes were made.", style="bold yellow"
-                )
+                console.print("🔍 Dry run completed. No changes were made.", style="bold yellow")
             else:
-                console.print(
-                    f"🎉 Version updated to {new_version}!", style="bold green"
-                )
+                console.print(f"🎉 Version updated to {new_version}!", style="bold green")
 
         except Exception as e:
             console.print(f"❌ Version update failed: {e}", style="bold red")

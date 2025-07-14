@@ -47,7 +47,7 @@ Get started with CSS Kustomize in just a few commands:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/css-kustomize.git
+git clone https://github.com/taybiz/css-kustomize.git
 cd css-kustomize
 
 # Install dependencies
@@ -150,10 +150,10 @@ poetry run dagger-pipeline ci --verbose
 
 ## Community and Support
 
-- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/your-org/css-kustomize/issues)
-- **Discussions**: Join the conversation in [GitHub Discussions](https://github.com/your-org/css-kustomize/discussions)
+- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/taybiz/css-kustomize/issues)
+- **Discussions**: Join the conversation in [GitHub Discussions](https://github.com/taybiz/css-kustomize/discussions)
 - **Contributing**: See our [Contributing Guide](developer-guide/contributing.md)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/your-org/css-kustomize/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/taybiz/css-kustomize/blob/main/LICENSE) file for details.

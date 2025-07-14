@@ -1,7 +1,8 @@
+---
 site_name: CSS Kustomize Documentation
 site_description: Kubernetes manifests for Community Solid Server with Dagger automation
 site_url: https://css-kustomize.readthedocs.io/
-repo_url: https://github.com/your-org/css-kustomize
+repo_url: https://github.com/taybiz/css-kustomize
 repo_name: css-kustomize
 
 theme:
@@ -90,6 +91,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/your-org/css-kustomize
+      link: https://github.com/taybiz/css-kustomize
   version:
     provider: mike

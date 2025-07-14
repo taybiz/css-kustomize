@@ -1,0 +1,501 @@
+---
+name: Development
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Development task to run'
+        required: true
+        type: choice
+        options:
+          - 'setup'
+          - 'lint-only'
+          - 'generate-only'
+          - 'security-scan'
+          - 'version-report'
+          - 'test-all'
+          - 'parallel-test'
+        default: 'test-all'
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.7.1"
+
+jobs:
+  setup-environment:
+    name: Setup Development Environment
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'setup'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install all dependencies
+        run: poetry install --with=docs,lint
+
+      - name: Setup development environment
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline setup --verbose
+          else
+            poetry run dagger-pipeline setup
+          fi
+
+      - name: Verify installation
+        run: |
+          poetry run dagger-pipeline --version
+          poetry run python -c "import dagger_pipeline; print('✅ Dagger pipeline imported successfully')"
+
+  lint-development:
+    name: Development Linting
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'lint-only'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --only=lint
+
+      - name: Run comprehensive linting
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline lint --verbose
+          else
+            poetry run dagger-pipeline lint
+          fi
+
+      - name: Show linting summary
+        run: |
+          echo "## 🔍 Linting Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ YAML linting completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Python linting completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Markdown linting completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Kustomize validation completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security scan completed" >> $GITHUB_STEP_SUMMARY
+
+  generate-development:
+    name: Development Manifest Generation
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'generate-only'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Generate manifests
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline generate --verbose
+          else
+            poetry run dagger-pipeline generate
+          fi
+
+      - name: List generated manifests
+        run: |
+          echo "## 📦 Generated Manifests" >> $GITHUB_STEP_SUMMARY
+          if [[ -d "manifests" ]]; then
+            for manifest in manifests/*.yaml; do
+              if [[ -f "$manifest" ]]; then
+                echo "- \`$(basename "$manifest")\`" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          else
+            echo "No manifests directory found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload generated manifests
+        uses: actions/upload-artifact@v3
+        with:
+          name: dev-manifests-${{ github.run_number }}
+          path: manifests/
+          retention-days: 7
+
+  security-scan-development:
+    name: Development Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'security-scan'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Run security scan on configurations
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline lint --security-only --verbose
+          else
+            poetry run dagger-pipeline lint --security-only
+          fi
+
+      - name: Generate manifests for security scan
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline generate --verbose
+          else
+            poetry run dagger-pipeline generate
+          fi
+
+      - name: Run security scan on generated manifests
+        run: |
+          poetry run python -c "
+          import asyncio
+          from dagger_pipeline.pipeline import Pipeline
+
+          async def main():
+              pipeline = Pipeline(verbose=${{ github.event.inputs.verbose }})
+              await pipeline.security_scan_generated('manifests')
+
+          asyncio.run(main())
+          "
+
+  version-report-development:
+    name: Development Version Report
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'version-report'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Validate version consistency
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline version validate --verbose
+          else
+            poetry run dagger-pipeline version validate
+          fi
+
+      - name: Generate version report
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline version report --verbose
+          else
+            poetry run dagger-pipeline version report
+          fi
+
+  test-all-development:
+    name: Development Full Test Suite
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'test-all'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Run complete CI pipeline
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline ci --verbose
+          else
+            poetry run dagger-pipeline ci
+          fi
+
+      - name: Run Dagger tests
+        run: poetry run python test-dagger.py
+
+      - name: Validate version consistency
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline version validate --verbose
+          else
+            poetry run dagger-pipeline version validate
+          fi
+
+      - name: Generate comprehensive report
+        run: |
+          echo "## 🧪 Development Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Complete CI pipeline passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dagger tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Version consistency validated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All manifests generated successfully" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dev-test-artifacts-${{ github.run_number }}
+          path: |
+            manifests/
+            *.log
+          retention-days: 7
+
+  parallel-test-development:
+    name: Development Parallel Test Suite
+    runs-on: ubuntu-latest
+    if: github.event.inputs.task == 'parallel-test'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Run parallel linting
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline lint-parallel --verbose
+          else
+            poetry run dagger-pipeline lint-parallel
+          fi
+
+      - name: Run parallel manifest generation
+        run: |
+          if [[ "${{ github.event.inputs.verbose }}" == "true" ]]; then
+            poetry run dagger-pipeline generate-parallel --verbose
+          else
+            poetry run dagger-pipeline generate-parallel
+          fi
+
+      - name: Run Dagger tests
+        run: poetry run python test-dagger.py
+
+      - name: Generate performance report
+        run: |
+          echo "## ⚡ Parallel Test Performance" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Parallel linting completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Parallel manifest generation completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dagger tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Parallel execution provides faster feedback during development." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload parallel test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dev-parallel-artifacts-${{ github.run_number }}
+          path: |
+            manifests/
+            *.log
+          retention-days: 7
+
+  summary:
+    name: Development Summary
+    runs-on: ubuntu-latest
+    needs:
+      - setup-environment
+      - lint-development
+      - generate-development
+      - security-scan-development
+      - version-report-development
+      - test-all-development
+      - parallel-test-development
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🚀 Development Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Task**: ${{ github.event.inputs.task }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Verbose**: ${{ github.event.inputs.verbose }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by**: @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check job results
+          if [[ "${{ needs.setup-environment.result }}" == "success" ]]; then
+            echo "- ✅ Environment setup completed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.setup-environment.result }}" == "failure" ]]; then
+            echo "- ❌ Environment setup failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.lint-development.result }}" == "success" ]]; then
+            echo "- ✅ Linting completed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.lint-development.result }}" == "failure" ]]; then
+            echo "- ❌ Linting failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.generate-development.result }}" == "success" ]]; then
+            echo "- ✅ Manifest generation completed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.generate-development.result }}" == "failure" ]]; then
+            echo "- ❌ Manifest generation failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.security-scan-development.result }}" == "success" ]]; then
+            echo "- ✅ Security scan completed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.security-scan-development.result }}" == "failure" ]]; then
+            echo "- ❌ Security scan failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.version-report-development.result }}" == "success" ]]; then
+            echo "- ✅ Version report generated" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.version-report-development.result }}" == "failure" ]]; then
+            echo "- ❌ Version report failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.test-all-development.result }}" == "success" ]]; then
+            echo "- ✅ Full test suite passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.test-all-development.result }}" == "failure" ]]; then
+            echo "- ❌ Full test suite failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ "${{ needs.parallel-test-development.result }}" == "success" ]]; then
+            echo "- ✅ Parallel test suite passed" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ needs.parallel-test-development.result }}" == "failure" ]]; then
+            echo "- ❌ Parallel test suite failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📚 Available Commands" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Run complete CI pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline ci --verbose" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Run specific linting" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline lint --yaml-only" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline lint --python-only" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline lint --kustomize-only" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Generate manifests" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline generate" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline generate-parallel" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Version management" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline version validate" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline version report" >> $GITHUB_STEP_SUMMARY
+          echo "poetry run dagger-pipeline version update 1.2.3" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

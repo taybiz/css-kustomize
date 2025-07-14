@@ -1,0 +1,189 @@
+---
+name: Version Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version (e.g., 1.2.3 or 1.2.3-beta.1)'
+        required: true
+        type: string
+      overlay:
+        description: 'Specific overlay to update (leave empty for all overlays)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (show changes without applying them)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: "3.11"
+  POETRY_VERSION: "1.7.1"
+
+jobs:
+  validate-version:
+    name: Validate Version Format
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+    steps:
+      - name: Validate version format
+        id: validate
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-prerelease"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  update-version:
+    name: Update Version
+    runs-on: ubuntu-latest
+    needs: [validate-version]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Update specific overlay
+        if: ${{ github.event.inputs.overlay != '' }}
+        run: |
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "🔍 Running dry run for overlay: ${{ github.event.inputs.overlay }}"
+            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
+              --overlay ${{ github.event.inputs.overlay }} --dry-run --verbose
+          else
+            echo "🏷️ Updating overlay: ${{ github.event.inputs.overlay }}"
+            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
+              --overlay ${{ github.event.inputs.overlay }} --verbose
+          fi
+
+      - name: Update all overlays
+        if: ${{ github.event.inputs.overlay == '' }}
+        run: |
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "🔍 Running dry run for all overlays"
+            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
+              --dry-run --verbose
+          else
+            echo "🏷️ Updating all overlays"
+            poetry run dagger-pipeline version update ${{ needs.validate-version.outputs.version }} \
+              --verbose
+          fi
+
+      - name: Validate version consistency
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: poetry run dagger-pipeline version validate --verbose
+
+      - name: Generate version report
+        run: poetry run dagger-pipeline version report --verbose
+
+      - name: Commit changes
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add .
+            if [[ "${{ github.event.inputs.overlay }}" != "" ]]; then
+              overlay_name="${{ github.event.inputs.overlay }}"
+              version="${{ needs.validate-version.outputs.version }}"
+              git commit -m "chore: update $overlay_name overlay to version $version"
+            else
+              version="${{ needs.validate-version.outputs.version }}"
+              git commit -m "chore: update all overlays to version $version"
+            fi
+            git push
+          fi
+
+  test-updated-version:
+    name: Test Updated Version
+    runs-on: ubuntu-latest
+    needs: [update-version]
+    if: ${{ github.event.inputs.dry_run != 'true' }}
+    steps:
+      - name: Checkout updated code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install
+
+      - name: Run linting on updated version
+        run: poetry run dagger-pipeline lint --verbose
+
+      - name: Generate manifests with updated version
+        run: poetry run dagger-pipeline generate --verbose
+
+      - name: Upload updated manifests
+        uses: actions/upload-artifact@v3
+        with:
+          name: updated-manifests-${{ needs.validate-version.outputs.version }}
+          path: manifests/
+          retention-days: 30
+
+      - name: Run security scan on updated manifests
+        run: |
+          poetry run python -c "
+          import asyncio
+          from dagger_pipeline.pipeline import Pipeline
+
+          async def main():
+              pipeline = Pipeline(verbose=True)
+              await pipeline.security_scan_generated('manifests')
+
+          asyncio.run(main())
+          "
