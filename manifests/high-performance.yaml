@@ -1,0 +1,206 @@
+apiVersion: v1
+data:
+  custom.json: |
+    {
+      "@context": "https://linkedsoftwaredependencies.org/bundles/npm/@solid/community-server/^6.0.0/components/context.jsonld",
+      "import": [
+        "css:config/app/main/default.json",
+        "css:config/app/init/initialize-root.json",
+        "css:config/app/setup/optional.json",
+        "css:config/app/variables/default.json",
+        "css:config/http/handler/default.json",
+        "css:config/http/middleware/websockets.json",
+        "css:config/http/server-factory/websockets.json",
+        "css:config/http/static/default.json",
+        "css:config/identity/access/public.json",
+        "css:config/identity/email/default.json",
+        "css:config/identity/handler/default.json",
+        "css:config/identity/ownership/token.json",
+        "css:config/identity/pod/static.json",
+        "css:config/identity/registration/enabled.json",
+        "css:config/ldp/authentication/dpop-bearer.json",
+        "css:config/ldp/authorization/webacl.json",
+        "css:config/ldp/handler/default.json",
+        "css:config/ldp/metadata-parser/default.json",
+        "css:config/ldp/metadata-writer/default.json",
+        "css:config/ldp/permissions/acl.json",
+        "css:config/storage/backend/data-accessors/file.json",
+        "css:config/storage/key-value/resource-store.json",
+        "css:config/storage/middleware/default.json",
+        "css:config/util/auxiliary/acl.json",
+        "css:config/util/identifiers/suffix.json",
+        "css:config/util/index/default.json",
+        "css:config/util/logging/winston.json",
+        "css:config/util/representation-conversion/default.json",
+        "css:config/util/resource-locker/file.json",
+        "css:config/util/variables/default.json"
+      ]
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-high-performance
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-custom-config
+  namespace: solid
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-high-performance
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: css-high-performance
+    app.kubernetes.io/name: community-solid-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-high-performance
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: community-solid-server-data
+  namespace: solid
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-high-performance
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: css-high-performance
+      app.kubernetes.io/name: community-solid-server
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/community-solid-server: runtime/default
+      labels:
+        app.kubernetes.io/instance: css-high-performance
+        app.kubernetes.io/name: community-solid-server
+    spec:
+      containers:
+      - args:
+        - -l
+        - warn
+        - -b
+        - http://community-solid-server.solid/
+        - -c
+        - /config/custom.json
+        - -f
+        - /data/
+        - -w
+        - "0"
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=4096 --optimize-for-size
+        - name: CSS_LOGGING_LEVEL
+          value: warn
+        - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+          value: "true"
+        - name: CSS_CONFIG_SHOW_STACK_TRACE
+          value: "false"
+        - name: CSS_CONFIG_TRUST_PROXY
+          value: "true"
+        - name: CSS_CONFIG_CORS_ORIGIN
+          value: '*'
+        - name: CSS_CONFIG_CORS_CREDENTIALS
+          value: "true"
+        image: docker.io/solidproject/community-server:6.0.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /.well-known/openid_configuration
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        name: community-solid-server
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /.well-known/openid_configuration
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var/tmp
+          name: var-tmp
+        - mountPath: /config
+          name: config
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+        supplementalGroups:
+        - 1000
+      volumes:
+      - emptyDir: {}
+        name: var-tmp
+      - emptyDir: {}
+        name: data
+        persistentVolumeClaim:
+          claimName: community-solid-server-data
+      - configMap:
+          items:
+          - key: custom.json
+            path: custom.json
+          name: css-custom-config
+        name: config
+      - emptyDir: {}
+        name: tmp

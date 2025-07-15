@@ -2,57 +2,72 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/instance: css-without-pvc
+    app.kubernetes.io/instance: css-nodeport-dev
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
+    app.kubernetes.io/version: 0.3.0
   name: css-community-solid-server
   namespace: solid
 spec:
   ports:
   - name: http
+    nodePort: 30080
     port: 80
     protocol: TCP
     targetPort: http
   selector:
-    app.kubernetes.io/instance: css-without-pvc
+    app.kubernetes.io/instance: css-nodeport-dev
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
-  type: ClusterIP
+  type: NodePort
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/instance: css-without-pvc
+    app.kubernetes.io/instance: css-nodeport-dev
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
+    app.kubernetes.io/version: 0.3.0
   name: css-community-solid-server
   namespace: solid
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/instance: css-without-pvc
+      app.kubernetes.io/instance: css-nodeport-dev
       app.kubernetes.io/name: community-solid-server
-      app.kubernetes.io/version: 0.2.0
   template:
     metadata:
       labels:
-        app.kubernetes.io/instance: css-without-pvc
+        app.kubernetes.io/instance: css-nodeport-dev
         app.kubernetes.io/name: community-solid-server
-        app.kubernetes.io/version: 0.2.0
     spec:
       containers:
       - args:
         - -l
-        - info
+        - debug
         - -b
-        - http://community-solid-server.solid/
+        - http://localhost:30080/
         - -c
         - config/default.json
         - -f
         - /data/
-        env: []
+        - -t
+        env:
+        - name: NODE_ENV
+          value: development
+        - name: CSS_LOGGING_LEVEL
+          value: debug
+        - name: CSS_CONFIG_SHOW_STACK_TRACE
+          value: "true"
+        - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+          value: "false"
+        - name: CSS_CONFIG_CORS_ORIGIN
+          value: '*'
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=2048
+        - name: CSS_CONFIG_TRUST_PROXY
+          value: "true"
+        - name: CSS_CONFIG_CORS_CREDENTIALS
+          value: "true"
         image: docker.io/solidproject/community-server:6.0.2
         imagePullPolicy: IfNotPresent
         name: community-solid-server
@@ -61,26 +76,20 @@ spec:
           name: http
           protocol: TCP
         resources:
-          limits: {}
-          requests: {}
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: false
-          runAsGroup: 1000
-          runAsNonRoot: true
-          runAsUser: 1000
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
         volumeMounts:
         - mountPath: /data
           name: data
+        - mountPath: /tmp
+          name: tmp
       enableServiceLinks: false
-      securityContext:
-        fsGroup: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        runAsUser: 1000
       volumes:
+      - emptyDir: {}
+        name: tmp
       - emptyDir: {}
         name: data

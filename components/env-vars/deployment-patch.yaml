@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          env:
+            # CSS Environment Variables
+            - name: CSS_LOGGING_LEVEL
+              value: "info"
+            - name: CSS_CONFIG_SHOW_STACK_TRACE
+              value: "false"
+            - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+              value: "false"
+            # Performance tuning
+            - name: NODE_ENV
+              value: "production"
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            # Security settings
+            - name: CSS_CONFIG_TRUST_PROXY
+              value: "true"
+            # CORS settings
+            - name: CSS_CONFIG_CORS_ORIGIN
+              value: "*"
+            - name: CSS_CONFIG_CORS_CREDENTIALS
+              value: "true"

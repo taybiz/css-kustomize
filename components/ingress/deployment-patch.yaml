@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          args:
+            - "-l"
+            - "info"
+            - "-b"
+            - "https://css.local/"  # Updated base URL for ingress
+            - "-c"
+            - "config/default.json"
+            - "-f"
+            - "/data/"

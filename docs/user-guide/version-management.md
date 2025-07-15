@@ -29,10 +29,10 @@ All overlays maintain consistent versions across:
 
 ```bash
 # Update version across all overlays
-poetry run dagger-pipeline update-version 6.0.3
+poetry run dagger-pipeline version update 6.0.3
 
 # Preview changes without applying
-poetry run dagger-pipeline update-version --dry-run 6.1.0
+poetry run dagger-pipeline version update --dry-run 6.1.0
 ```
 
 ### Update Single Overlay
@@ -104,7 +104,7 @@ Version references in documentation are updated automatically during version upd
 1. **Use dry-run first**:
 
    ```bash
-   poetry run dagger-pipeline update-version --dry-run 6.0.3
+   poetry run dagger-pipeline version update --dry-run 6.0.3
    ```
 
 1. **Update incrementally** for major changes
@@ -142,7 +142,7 @@ If versions are inconsistent:
 poetry run dagger-pipeline validate-versions --verbose
 
 # Fix automatically
-poetry run dagger-pipeline update-version $(current-version)
+poetry run dagger-pipeline version update $(current-version)
 ```
 
 ### Rollback Changes
@@ -154,7 +154,7 @@ To rollback version changes:
 git checkout -- overlays/
 
 # Or update to previous version
-poetry run dagger-pipeline update-version 6.0.2
+poetry run dagger-pipeline version update 6.0.2
 ```
 
 ## Integration

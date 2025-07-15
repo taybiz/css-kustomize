@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          args:
+            - "-l"
+            - "info"
+            - "-b"
+            - "http://community-solid-server.solid/"
+            - "-c"
+            - "config/sparql-endpoint.json"  # Use SPARQL endpoint config
+            - "-f"
+            - "/data/"
+          env:
+            - name: CSS_CONFIG_SPARQL_ENDPOINT
+              value: "http://localhost:3030/css/sparql"  # Default Fuseki endpoint
+            - name: CSS_CONFIG_SPARQL_UPDATE_ENDPOINT
+              value: "http://localhost:3030/css/update"  # Default Fuseki update endpoint

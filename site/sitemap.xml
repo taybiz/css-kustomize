@@ -1,79 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://css-kustomize.readthedocs.io/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/developer-guide/architecture/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/README-versioning/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/developer-guide/caching-strategy/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/developer-guide/architecture/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/developer-guide/contributing/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/developer-guide/contributing/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/developer-guide/dagger-pipeline/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/developer-guide/dagger-pipeline/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/examples/advanced-workflows/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/examples/advanced-workflows/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/examples/basic-usage/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/examples/basic-usage/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/examples/cicd-integration/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/examples/cicd-integration/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/getting-started/configuration/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/getting-started/configuration/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/getting-started/installation/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/getting-started/installation/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/getting-started/quick-start/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/getting-started/quick-start/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/reference/SUMMARY/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/reference/SUMMARY/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/reference/dagger_pipeline/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/reference/dagger_pipeline/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/reference/dagger_pipeline/main/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/reference/dagger_pipeline/main/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/reference/dagger_pipeline/pipeline/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/reference/dagger_pipeline/pipeline/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/user-guide/cli-commands/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/user-guide/cli-commands/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/user-guide/kustomize-overlays/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/user-guide/documentation-versioning/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/user-guide/release-names/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/user-guide/kustomize-overlays/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://css-kustomize.readthedocs.io/user-guide/version-management/</loc>
-         <lastmod>2025-07-14</lastmod>
+         <loc>https://taybiz.github.io/css-kustomize/user-guide/release-names/</loc>
+         <lastmod>2025-07-15</lastmod>
+    </url>
+    <url>
+         <loc>https://taybiz.github.io/css-kustomize/user-guide/version-management/</loc>
+         <lastmod>2025-07-15</lastmod>
     </url>
 </urlset>

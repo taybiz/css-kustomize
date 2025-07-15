@@ -6,7 +6,6 @@ metadata:
   name: community-solid-server-data
   labels:
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: "6.0.2"
 spec:
   accessModes:
     - ReadWriteOnce

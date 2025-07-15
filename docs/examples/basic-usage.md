@@ -95,10 +95,10 @@ diff manifests/with-pvc.yaml manifests/without-pvc.yaml
 poetry run dagger-pipeline version-report
 
 # Update to new version (dry run first)
-poetry run dagger-pipeline update-version --dry-run 6.0.3
+poetry run dagger-pipeline version update --dry-run 6.0.3
 
 # Apply version update
-poetry run dagger-pipeline update-version 6.0.3
+poetry run dagger-pipeline version update 6.0.3
 
 # Validate consistency
 poetry run dagger-pipeline validate-versions

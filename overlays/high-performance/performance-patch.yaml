@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  replicas: 2  # Scale for high availability
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          args:
+            - "-l"
+            - "warn"  # Reduce logging for performance
+            - "-b"
+            - "http://community-solid-server.solid/"
+            - "-c"
+            - "/config/custom.json"
+            - "-f"
+            - "/data/"
+            - "-w"
+            - "0"  # Use all available cores
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=4096 --optimize-for-size"
+            - name: CSS_LOGGING_LEVEL
+              value: "warn"
+            - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+              value: "true"  # Disable for performance
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+            limits:
+              cpu: 4000m
+              memory: 8Gi
+          readinessProbe:
+            httpGet:
+              path: /.well-known/openid_configuration
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /.well-known/openid_configuration
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30

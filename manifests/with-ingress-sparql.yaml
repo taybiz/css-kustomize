@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-with-ingress-sparql
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: css-with-ingress-sparql
+    app.kubernetes.io/name: community-solid-server
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-with-ingress-sparql
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: community-solid-server-data
+  namespace: solid
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-with-ingress-sparql
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: css-with-ingress-sparql
+      app.kubernetes.io/name: community-solid-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: css-with-ingress-sparql
+        app.kubernetes.io/name: community-solid-server
+    spec:
+      containers:
+      - args:
+        - -l
+        - info
+        - -b
+        - http://community-solid-server.solid/
+        - -c
+        - config/sparql-endpoint.json
+        - -f
+        - /data/
+        env:
+        - name: CSS_LOGGING_LEVEL
+          value: info
+        - name: CSS_CONFIG_SHOW_STACK_TRACE
+          value: "false"
+        - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+          value: "false"
+        - name: NODE_ENV
+          value: production
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=2048
+        - name: CSS_CONFIG_TRUST_PROXY
+          value: "true"
+        - name: CSS_CONFIG_CORS_ORIGIN
+          value: '*'
+        - name: CSS_CONFIG_CORS_CREDENTIALS
+          value: "true"
+        - name: CSS_CONFIG_SPARQL_ENDPOINT
+          value: http://localhost:3030/css/sparql
+        - name: CSS_CONFIG_SPARQL_UPDATE_ENDPOINT
+          value: http://localhost:3030/css/update
+        image: docker.io/solidproject/community-server:6.0.2
+        imagePullPolicy: IfNotPresent
+        name: community-solid-server
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        resources:
+          limits: {}
+          requests: {}
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      enableServiceLinks: false
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - name: data
+        persistentVolumeClaim:
+          claimName: community-solid-server-data
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      location /sparql {
+        proxy_pass http://upstream/sparql;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  labels:
+    app.kubernetes.io/instance: css-with-ingress-sparql
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: community-solid-server
+  namespace: solid
+spec:
+  rules:
+  - host: css-sparql.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: css-community-solid-server
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - css-sparql.local
+    secretName: css-sparql-tls

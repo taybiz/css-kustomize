@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metallb.universe.tf/allow-shared-ip: css-shared
+    metallb.universe.tf/loadBalancerIPs: 10.0.0.1
+  labels:
+    app.kubernetes.io/instance: css-with-metallb
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  loadBalancerIP: 10.0.0.1
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: css-with-metallb
+    app.kubernetes.io/name: community-solid-server
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-with-metallb
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: community-solid-server-data
+  namespace: solid
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: css-with-metallb
+    app.kubernetes.io/name: community-solid-server
+    app.kubernetes.io/version: 0.3.0
+  name: css-community-solid-server
+  namespace: solid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: css-with-metallb
+      app.kubernetes.io/name: community-solid-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: css-with-metallb
+        app.kubernetes.io/name: community-solid-server
+    spec:
+      containers:
+      - args:
+        - -l
+        - info
+        - -b
+        - http://community-solid-server.solid/
+        - -c
+        - config/default.json
+        - -f
+        - /data/
+        env:
+        - name: CSS_LOGGING_LEVEL
+          value: info
+        - name: CSS_CONFIG_SHOW_STACK_TRACE
+          value: "false"
+        - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+          value: "false"
+        - name: NODE_ENV
+          value: production
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=2048
+        - name: CSS_CONFIG_TRUST_PROXY
+          value: "true"
+        - name: CSS_CONFIG_CORS_ORIGIN
+          value: '*'
+        - name: CSS_CONFIG_CORS_CREDENTIALS
+          value: "true"
+        image: docker.io/solidproject/community-server:6.0.2
+        imagePullPolicy: IfNotPresent
+        name: community-solid-server
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        resources:
+          limits: {}
+          requests: {}
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /tmp
+          name: tmp
+      enableServiceLinks: false
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - name: data
+        persistentVolumeClaim:
+          claimName: community-solid-server-data

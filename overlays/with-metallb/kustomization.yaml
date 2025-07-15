@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: css-with-metallb
+
+resources:
+  - ../../base
+
+components:
+  - ../../components/pvc
+  - ../../components/metallb-loadbalancer
+  - ../../components/env-vars
+
+images:
+  - name: docker.io/solidproject/community-server
+    newTag: 6.0.2
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: css-with-metallb
+      app.kubernetes.io/version: "0.3.0"
+
+patches:
+  - target:
+      kind: Service
+      name: community-solid-server
+    patch: |-
+      - op: replace
+        path: /spec/selector/app.kubernetes.io~1instance
+        value: css-with-metallb
+  - target:
+      kind: Deployment
+      name: community-solid-server
+    patch: |-
+      - op: replace
+        path: /spec/selector/matchLabels/app.kubernetes.io~1instance
+        value: css-with-metallb
+      - op: replace
+        path: /spec/template/metadata/labels/app.kubernetes.io~1instance
+        value: css-with-metallb
+
+namespace: solid

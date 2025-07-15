@@ -4,7 +4,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: css-with-pvc
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
+    app.kubernetes.io/version: 0.3.0
   name: css-community-solid-server
   namespace: solid
 spec:
@@ -16,7 +16,6 @@ spec:
   selector:
     app.kubernetes.io/instance: css-with-pvc
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
   type: ClusterIP
 ---
 apiVersion: v1
@@ -25,7 +24,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: css-with-pvc
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
+    app.kubernetes.io/version: 0.3.0
   name: community-solid-server-data
   namespace: solid
 spec:
@@ -41,7 +40,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: css-with-pvc
     app.kubernetes.io/name: community-solid-server
-    app.kubernetes.io/version: 0.2.0
+    app.kubernetes.io/version: 0.3.0
   name: css-community-solid-server
   namespace: solid
 spec:
@@ -50,13 +49,11 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: css-with-pvc
       app.kubernetes.io/name: community-solid-server
-      app.kubernetes.io/version: 0.2.0
   template:
     metadata:
       labels:
         app.kubernetes.io/instance: css-with-pvc
         app.kubernetes.io/name: community-solid-server
-        app.kubernetes.io/version: 0.2.0
     spec:
       containers:
       - args:
@@ -79,25 +76,15 @@ spec:
         resources:
           limits: {}
           requests: {}
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: false
-          runAsGroup: 1000
-          runAsNonRoot: true
-          runAsUser: 1000
         volumeMounts:
         - mountPath: /data
           name: data
+        - mountPath: /tmp
+          name: tmp
       enableServiceLinks: false
-      securityContext:
-        fsGroup: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        runAsUser: 1000
       volumes:
+      - emptyDir: {}
+        name: tmp
       - name: data
         persistentVolumeClaim:
           claimName: community-solid-server-data

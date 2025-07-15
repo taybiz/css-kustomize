@@ -1,6 +1,6 @@
 [project]
 name = "css-kustomize"
-version = "0.2.0"
+version = "0.3.0"
 description = "Kubernetes manifests for Community Solid Server with Dagger automation"
 authors = [
     {name = "Stephen Taylor"}

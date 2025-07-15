@@ -160,12 +160,12 @@ poetry run dagger-pipeline security-scan-generated manifests/
 poetry run dagger-pipeline security-scan-generated --verbose manifests/
 ```
 
-### `update-version` - Update Version
+### `version update` - Update Version
 
 Update the version across all overlays (image tags and labels).
 
 ```bash
-poetry run dagger-pipeline update-version [OPTIONS] VERSION
+poetry run dagger-pipeline version update [OPTIONS] VERSION
 ```
 
 #### Arguments
@@ -180,13 +180,13 @@ poetry run dagger-pipeline update-version [OPTIONS] VERSION
 
 ```bash
 # Update to new version
-poetry run dagger-pipeline update-version 6.0.3
+poetry run dagger-pipeline version update 6.0.3
 
 # Preview changes without applying
-poetry run dagger-pipeline update-version --dry-run 6.1.0
+poetry run dagger-pipeline version update --dry-run 6.1.0
 
 # Update with verbose output
-poetry run dagger-pipeline update-version --verbose 6.0.3
+poetry run dagger-pipeline version update --verbose 6.0.3
 ```
 
 ### `update-overlay-version` - Update Single Overlay
@@ -333,7 +333,7 @@ poetry run dagger-pipeline security-scan-generated manifests/
 
 ```bash
 # Update version across all overlays
-poetry run dagger-pipeline update-version 6.0.3
+poetry run dagger-pipeline version update 6.0.3
 
 # Validate version consistency
 poetry run dagger-pipeline validate-versions

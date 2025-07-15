@@ -2,6 +2,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: css-base
+
 namespace: solid
 
 resources:
@@ -13,33 +16,24 @@ images:
 
 labels:
   - pairs:
-      app.kubernetes.io/instance: css-without-pvc
-      app.kubernetes.io/version: 0.2.0
+      app.kubernetes.io/instance: css-base
+      app.kubernetes.io/version: "0.3.0"
 
 patches:
   - target:
       kind: Service
       name: community-solid-server
     patch: |-
-      - op: add
+      - op: replace
         path: /spec/selector/app.kubernetes.io~1instance
-        value: css-without-pvc
-      - op: add
-        path: /spec/selector/app.kubernetes.io~1version
-        value: 0.2.0
+        value: css-base
   - target:
       kind: Deployment
       name: community-solid-server
     patch: |-
-      - op: add
+      - op: replace
         path: /spec/selector/matchLabels/app.kubernetes.io~1instance
-        value: css-without-pvc
-      - op: add
-        path: /spec/selector/matchLabels/app.kubernetes.io~1version
-        value: 0.2.0
-      - op: add
+        value: css-base
+      - op: replace
         path: /spec/template/metadata/labels/app.kubernetes.io~1instance
-        value: css-without-pvc
-      - op: add
-        path: /spec/template/metadata/labels/app.kubernetes.io~1version
-        value: 0.2.0
+        value: css-base

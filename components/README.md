@@ -1,132 +1,289 @@
 # Kustomize Components
 
-This directory contains optional Kustomize components that can be mixed and matched to customize your Community Solid Server deployment.
+This directory contains reusable Kustomize components that can be mixed and matched to create different deployment configurations for the Community Solid Server.
 
 ## Available Components
 
-### PVC Component (`pvc/`)
+### Storage Components
 
-The PVC component replaces the default `emptyDir` volume with a Persistent Volume Claim, providing persistent storage that survives pod restarts and deployments.
+#### `pvc/`
+
+Replaces the default `emptyDir` storage with a Persistent Volume Claim for data persistence across pod restarts.
 
 **Features:**
 
 - 1Gi storage by default (configurable)
 - ReadWriteOnce access mode
-- Automatic replacement of emptyDir volume
+- Automatic replacement of emptyDir with PVC mount
 
 **Usage:**
 
 ```yaml
-# In your kustomization.yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - ../../base
-
 components:
   - ../../components/pvc
 ```
 
-**Customization:**
-To change the storage size, edit `components/pvc/pvc.yaml`:
+### Networking Components
+
+#### `ingress/`
+
+Adds Kubernetes Ingress support for external access with SSL/TLS capabilities.
+
+**Features:**
+
+- NGINX ingress controller support
+- SSL/TLS termination
+- Configurable host and path
+- Cert-manager integration ready
+- Updates base URL for ingress access
+
+**Usage:**
 
 ```yaml
-spec:
-  resources:
-    requests:
-      storage: 5Gi  # Change as needed
+components:
+  - ../../components/ingress
 ```
 
-## Component Architecture
+#### `nodeport-service/`
 
-Components in Kustomize are reusable pieces that can be included in multiple overlays. They differ from overlays in that:
+Changes the service type from ClusterIP to NodePort for direct node access.
 
-- **Components** are reusable building blocks
-- **Overlays** are complete deployment configurations
-- Components can be mixed and matched in different overlays
+**Features:**
 
-## Examples
+- NodePort service type
+- Fixed port 30080 (configurable)
+- Suitable for development and testing
 
-### Basic Usage with PVC
+**Usage:**
 
 ```yaml
-# overlays/production/kustomization.yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+components:
+  - ../../components/nodeport-service
+```
 
-namespace: solid-prod
+#### `metallb-loadbalancer/`
 
-resources:
-  - ../../base
+Configures the service to use MetalLB LoadBalancer for external access with a fixed IP address.
 
+**Features:**
+
+- LoadBalancer service type with MetalLB
+- Fixed IP address assignment (192.168.1.81)
+- MetalLB annotations for shared IP configuration
+- Suitable for bare-metal Kubernetes clusters
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/metallb-loadbalancer
+```
+
+### Performance Components
+
+#### `multithreading/`
+
+Enables Community Solid Server multithreading with worker processes.
+
+**Features:**
+
+- Configurable worker count (default: num_cores-1)
+- Enhanced resource limits for multi-core usage
+- Performance-optimized settings
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/multithreading
+```
+
+### Configuration Components
+
+#### `custom-config/`
+
+Provides custom Community Solid Server configuration via ConfigMap.
+
+**Features:**
+
+- Custom JSON-LD configuration
+- ConfigMap-based config injection
+- Modular configuration imports
+- Volume mount for config files
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/custom-config
+```
+
+#### `env-vars/`
+
+Adds common environment variables for CSS configuration and performance tuning.
+
+**Features:**
+
+- Logging level configuration
+- Performance tuning variables
+- CORS settings
+- Security configurations
+- Node.js optimization flags
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/env-vars
+```
+
+### Data Access Components
+
+#### `sparql-endpoint/`
+
+Configures Community Solid Server to use SPARQL endpoint backend for GraphQL-like query capabilities.
+
+**Features:**
+
+- SPARQL endpoint configuration
+- Support for external SPARQL stores (e.g., Fuseki)
+- Environment variables for endpoint URLs
+- Enhanced query capabilities
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/sparql-endpoint
+```
+
+### Security Components
+
+#### `security-hardening/`
+
+Applies enhanced security contexts and hardening measures.
+
+**Features:**
+
+- Read-only root filesystem
+- Enhanced security contexts
+- AppArmor and seccomp profiles
+- Additional temporary volume mounts
+- Comprehensive capability dropping
+
+**Usage:**
+
+```yaml
+components:
+  - ../../components/security-hardening
+```
+
+## Component Combinations
+
+Components can be combined to create powerful deployment configurations:
+
+### High-Performance Setup
+
+```yaml
 components:
   - ../../components/pvc
+  - ../../components/multithreading
+  - ../../components/custom-config
+  - ../../components/env-vars
+  - ../../components/security-hardening
 ```
 
-### Advanced Usage with Multiple Customizations
+### External Access with SPARQL
 
 ```yaml
-# overlays/staging/kustomization.yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-namespace: solid-staging
-
-resources:
-  - ../../base
-
 components:
   - ../../components/pvc
-
-# Add custom labels
-labels:
-  environment: staging
-  team: platform
-
-# Add resource limits
-patches:
-  - patch: |-
-      - op: add
-        path: /spec/template/spec/containers/0/resources/limits
-        value:
-          cpu: "1000m"
-          memory: "1Gi"
-    target:
-      kind: Deployment
-      name: community-solid-server
+  - ../../components/ingress
+  - ../../components/sparql-endpoint
+  - ../../components/env-vars
 ```
 
-## Testing Components
+### Development Environment
 
-Test your component configurations:
-
-```bash
-# Test with PVC component
-kubectl kustomize overlays/with-pvc/
-
-# Test without PVC component
-kubectl kustomize overlays/without-pvc/
-
-# Test custom overlay
-kubectl kustomize examples/custom-overlay-with-pvc/
+```yaml
+components:
+  - ../../components/nodeport-service
+  - ../../components/env-vars
 ```
 
-## Adding New Components
+### MetalLB LoadBalancer Setup
 
-To add a new component:
+```yaml
+components:
+  - ../../components/pvc
+  - ../../components/metallb-loadbalancer
+  - ../../components/env-vars
+```
+
+## Creating Custom Components
+
+To create a new component:
 
 1. Create a new directory under `components/`
-1. Add a `kustomization.yaml` with `kind: Component`
-1. Include any resources and patches needed
-1. Use `apiVersion: kustomize.config.k8s.io/v1alpha1` for components
+1. Add a `kustomization.yaml` file with `kind: Component`
+1. Include resources and/or patches as needed
+1. Document the component in this README
 
-Example structure:
+### Component Structure
 
 ```
-components/
-└── my-component/
-    ├── kustomization.yaml
-    ├── resource.yaml
-    └── patch.yaml
+components/my-component/
+├── kustomization.yaml      # Component definition
+├── resource.yaml          # Optional: new resources
+└── deployment-patch.yaml  # Optional: patches to existing resources
 ```
+
+### Example Component
+
+```yaml
+# components/my-component/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - resource.yaml
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+```
+
+## Best Practices
+
+1. **Single Responsibility**: Each component should have a focused purpose
+1. **Composability**: Components should work well together
+1. **Documentation**: Always document component features and usage
+1. **Testing**: Test components in isolation and in combination
+1. **Versioning**: Consider component compatibility with base resources
+
+## Helm Chart Feature Parity
+
+These components provide feature parity with the official Community Solid Server Helm chart, including:
+
+- ✅ Ingress support with TLS
+- ✅ Persistent storage options
+- ✅ SPARQL endpoint configuration
+- ✅ Multithreading support
+- ✅ Custom configuration via ConfigMaps
+- ✅ Environment variable configuration
+- ✅ NodePort service support
+- ✅ MetalLB LoadBalancer support
+- ✅ Enhanced security contexts
+- ✅ Resource limits and requests
+- ✅ Performance optimizations
+
+## Migration from Helm
+
+To migrate from the Helm chart to these Kustomize components:
+
+1. Identify your current Helm values
+1. Select appropriate components that match your configuration
+1. Create an overlay that combines the needed components
+1. Apply any custom patches for your specific requirements
+1. Test the deployment in a non-production environment
+
+For detailed migration guidance, see the project documentation.

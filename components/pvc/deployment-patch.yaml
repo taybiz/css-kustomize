@@ -1,7 +1,8 @@
----
 - op: replace
-  path: /spec/template/spec/volumes/0
+  path: /spec/template/spec/volumes
   value:
-    name: data
-    persistentVolumeClaim:
-      claimName: community-solid-server-data
+    - name: tmp
+      emptyDir: {}
+    - name: data
+      persistentVolumeClaim:
+        claimName: community-solid-server-data

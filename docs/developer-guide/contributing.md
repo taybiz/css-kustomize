@@ -172,7 +172,7 @@ poetry run mkdocs serve
 
 ```bash
 # Update version across overlays
-poetry run dagger-pipeline update-version 6.0.3
+poetry run dagger-pipeline version update 6.0.3
 
 # Validate changes
 poetry run dagger-pipeline validate-versions

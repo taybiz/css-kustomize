@@ -104,7 +104,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Update version in manifests
-        run: poetry run dagger-pipeline update-version ${{ steps.version.outputs.version }}
+        run: poetry run dagger-pipeline version update ${{ steps.version.outputs.version }}
 
       - name: Run CI pipeline
         run: poetry run dagger-pipeline ci --parallel --verbose

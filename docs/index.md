@@ -11,6 +11,8 @@ CSS Kustomize is a modern DevOps solution that combines:
 - **Dagger Automation**: Containerized CI/CD pipelines with comprehensive linting and validation
 - **Python CLI**: Rich command-line interface for development and deployment workflows
 
+Author's Note: But why not helm? After all, there is a [chart](https://github.com/CommunitySolidServer/css-helm-chart). I simply like kustomize more. Use the helm chart, it's great, and most of the components are built directly to match the features of the chart. I've tried to create some good mix-match overlays to represent what I experiment with. I'll happily take PRs with more!
+
 ## Key Features
 
 ### 🚀 **Automated CI/CD Pipeline**
@@ -34,13 +36,6 @@ CSS Kustomize is a modern DevOps solution that combines:
 - Fast feedback loops with caching strategies
 - Cross-platform compatibility
 
-### 📦 **Production Ready**
-
-- Security best practices built-in
-- Comprehensive validation and testing
-- Documentation-driven development
-- Modern tooling and dependencies
-
 ## Quick Start
 
 Get started with CSS Kustomize in just a few commands:
@@ -60,7 +55,7 @@ poetry run dagger-pipeline ci
 poetry run dagger-pipeline generate manifests/
 
 # Build specific overlay
-kubectl kustomize overlays/with-pvc
+kubectl kustomize overlays/without-pvc
 ```
 
 ## Project Structure
@@ -78,13 +73,6 @@ css-kustomize/
 ├── manifests/            # Generated manifests
 └── scripts/              # Utility scripts
 ```
-
-## Available Overlays
-
-| Overlay       | Release Name      | Purpose         | Storage |
-| ------------- | ----------------- | --------------- | ------- |
-| `with-pvc`    | `css-with-pvc`    | Production-like | PVC     |
-| `without-pvc` | `css-without-pvc` | Stateless       | None    |
 
 ## CLI Commands
 
@@ -104,8 +92,9 @@ poetry run dagger-pipeline security-scan
 poetry run dagger-pipeline security-scan-generated manifests/
 
 # Version management
-poetry run dagger-pipeline update-version 6.0.3
-poetry run dagger-pipeline version-report
+# NB, the version is the app.kubernetes.io/version not the CSS image tag.
+poetry run dagger-pipeline version update 0.3.0
+poetry run dagger-pipeline version report
 
 # Complete CI pipeline
 poetry run dagger-pipeline ci --verbose

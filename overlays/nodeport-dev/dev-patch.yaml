@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          args:
+            - "-l"
+            - "debug"  # Verbose logging for development
+            - "-b"
+            - "http://localhost:30080/"  # NodePort base URL
+            - "-c"
+            - "config/default.json"
+            - "-f"
+            - "/data/"
+            - "-t"  # Show stack traces for debugging
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: CSS_LOGGING_LEVEL
+              value: "debug"
+            - name: CSS_CONFIG_SHOW_STACK_TRACE
+              value: "true"
+            - name: CSS_CONFIG_DISABLE_NOTIFICATIONS
+              value: "false"
+            - name: CSS_CONFIG_CORS_ORIGIN
+              value: "*"  # Allow all origins for development
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi

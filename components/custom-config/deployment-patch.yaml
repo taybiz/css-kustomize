@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-solid-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: community-solid-server
+          args:
+            - "-l"
+            - "info"
+            - "-b"
+            - "http://community-solid-server.solid/"
+            - "-c"
+            - "/config/custom.json"  # Use custom config from ConfigMap
+            - "-f"
+            - "/data/"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: css-custom-config
+            items:
+              - key: custom.json
+                path: custom.json
