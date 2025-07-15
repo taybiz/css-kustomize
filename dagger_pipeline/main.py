@@ -11,20 +11,13 @@ for better user experience.
 - **Python Code Quality**: Automated checks and formatting with ruff
 - **Markdown Validation**: Format checking and consistency enforcement
 - **Kustomize Integration**: Configuration validation and manifest generation
-- **Security Scanning**: Kubernetes manifest security analysis
 - **Version Management**: Automated version updates across overlays
-- **Parallel Execution**: High-performance concurrent operations
 
 ## Usage Examples
 
 Run the complete CI pipeline:
 ```bash
 poetry run dagger-pipeline ci --verbose
-```
-
-Run only YAML linting:
-```bash
-poetry run dagger-pipeline lint --yaml-only
 ```
 
 Generate manifests for all overlays:
@@ -68,23 +61,15 @@ def cli():
     using Kustomize, with automated linting, validation, and deployment capabilities
     powered by Dagger for containerized execution.
 
-    The pipeline ensures code quality, security compliance, and consistent deployment
+    The pipeline ensures code quality, and consistent deployment
     practices across different environments and overlays.
     """
     pass
 
 
 @cli.command()
-@click.option("--yaml-only", is_flag=True, help="Run only YAML linting")
-@click.option("--python-only", is_flag=True, help="Run only Python linting and formatting")
-@click.option("--kustomize-only", is_flag=True, help="Run only Kustomize validation")
-@click.option("--security-only", is_flag=True, help="Run only security checks")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def lint(
-    yaml_only: bool,
-    python_only: bool,
-    kustomize_only: bool,
-    security_only: bool,
     verbose: bool,
 ):
     """Run comprehensive linting and validation checks.
@@ -94,10 +79,6 @@ def lint(
     configured to run specific checks only.
 
     Args:
-        yaml_only: If True, run only YAML linting with yamllint
-        python_only: If True, run only Python linting and formatting checks with ruff
-        kustomize_only: If True, run only Kustomize configuration validation
-        security_only: If True, run only security checks on Kubernetes manifests
         verbose: If True, enable detailed output during execution
 
     The linting includes:
@@ -112,9 +93,6 @@ def lint(
         Run all linting checks:
             $ poetry run dagger-pipeline lint
 
-        Run only YAML linting:
-            $ poetry run dagger-pipeline lint --yaml-only
-
         Run with verbose output:
             $ poetry run dagger-pipeline lint --verbose
     """
@@ -125,16 +103,7 @@ def lint(
         pipeline = Pipeline(verbose=verbose)
 
         try:
-            if yaml_only:
-                await pipeline.lint_yaml()
-            elif python_only:
-                await pipeline.lint_python()
-            elif kustomize_only:
-                await pipeline.validate_kustomize()
-            elif security_only:
-                await pipeline.security_scan()
-            else:
-                await pipeline.run_all_linting()
+            await pipeline.run_all_linting()
 
             console.print("🎉 All linting checks passed!", style="bold green")
 
@@ -202,11 +171,10 @@ def generate(overlay: str | None, output_dir: str, verbose: bool):
 @click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def ci(output_dir: str, verbose: bool):
-    """Run complete CI pipeline (lint, validate, generate, security scan).
+    """Run complete CI pipeline (lint, validate, generate).
 
     This is the main CI command that executes the full pipeline workflow.
-    It performs all quality checks, generates manifests, and runs security
-    scans to ensure the project is ready for deployment.
+    It performs all quality checks, and generates manifests.
 
     Args:
         output_dir: Directory where generated manifests will be saved.
@@ -248,10 +216,6 @@ def ci(output_dir: str, verbose: bool):
             await pipeline.generate_all_overlays(output_dir)
             console.print("✅ Manifest generation completed", style="green")
 
-            # Run security scan on generated manifests
-            await pipeline.security_scan_generated(output_dir)
-            console.print("✅ Security scan completed", style="green")
-
             console.print("🎉 Complete CI pipeline passed!", style="bold green")
 
         except Exception as e:
@@ -280,69 +244,6 @@ def setup(verbose: bool):
             sys.exit(1)
 
     asyncio.run(run_setup())
-
-
-@cli.command()
-@click.option("--yaml-only", is_flag=True, help="Run only YAML linting")
-@click.option("--python-only", is_flag=True, help="Run only Python linting")
-@click.option("--kustomize-only", is_flag=True, help="Run only Kustomize validation")
-@click.option("--security-only", is_flag=True, help="Run only security checks")
-@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-def lint_parallel(
-    yaml_only: bool,
-    python_only: bool,
-    kustomize_only: bool,
-    security_only: bool,
-    verbose: bool,
-):
-    """Run linting checks in parallel for maximum speed (cached)."""
-
-    console.print(Panel.fit("🚀 CSS Kustomize Parallel Linting Pipeline", style="bold blue"))
-
-    async def run_lint_parallel():
-        pipeline = Pipeline(verbose=verbose)
-
-        try:
-            if yaml_only:
-                await pipeline.lint_yaml()
-            elif python_only:
-                await pipeline.lint_python()
-            elif kustomize_only:
-                await pipeline.validate_kustomize()
-            elif security_only:
-                await pipeline.security_scan()
-            else:
-                await pipeline.run_all_linting_parallel()
-
-            console.print("🎉 All parallel linting checks passed!", style="bold green")
-
-        except Exception as e:
-            console.print(f"❌ Parallel linting failed: {e}", style="bold red")
-            sys.exit(1)
-
-    asyncio.run(run_lint_parallel())
-
-
-@cli.command()
-@click.option("--output-dir", default="manifests", help="Output directory for generated manifests")
-@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
-def generate_parallel(output_dir: str, verbose: bool):
-    """Generate all Kustomize manifests in parallel for maximum speed."""
-
-    console.print(Panel.fit("🚀 CSS Kustomize Parallel Generation Pipeline", style="bold blue"))
-
-    async def run_generate_parallel():
-        pipeline = Pipeline(verbose=verbose)
-
-        try:
-            await pipeline.generate_all_overlays_parallel(output_dir)
-            console.print("🎉 Parallel manifest generation completed!", style="bold green")
-
-        except Exception as e:
-            console.print(f"❌ Parallel generation failed: {e}", style="bold red")
-            sys.exit(1)
-
-    asyncio.run(run_generate_parallel())
 
 
 @cli.group()

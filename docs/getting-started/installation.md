@@ -173,7 +173,7 @@ poetry run dagger-pipeline --help
 
 ```bash
 # Run a quick linting test
-poetry run dagger-pipeline lint --yaml-only
+poetry run dagger-pipeline lint
 
 # Generate a test manifest
 poetry run dagger-pipeline generate-overlay without-pvc /tmp/test-manifest.yaml
@@ -251,7 +251,6 @@ Once installation is complete:
 1. **Read the [Quick Start Guide](quick-start.md)** to get familiar with basic operations
 1. **Review [Configuration](configuration.md)** to customize the setup for your needs
 1. **Explore [CLI Commands](../user-guide/cli-commands.md)** to understand available operations
-1. **Check out [Examples](../examples/basic-usage.md)** for common workflows
 
 ## Development Environment
 

@@ -189,9 +189,3 @@ git add .
 git commit -m "Release 6.0.3"
 git tag v6.0.3
 ```
-
-## Next Steps
-
-- Learn about [Release Names](release-names.md)
-- Explore [CLI Commands](cli-commands.md)
-- Check [Examples](../examples/basic-usage.md)

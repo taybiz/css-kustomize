@@ -43,4 +43,3 @@ See the [Installation Guide](installation.md) for detailed setup instructions.
 
 - Read the [CLI Commands](../user-guide/cli-commands.md) guide
 - Explore [Kustomize Overlays](../user-guide/kustomize-overlays.md)
-- Check out [Examples](../examples/basic-usage.md)

@@ -11,9 +11,7 @@ on:
         options:
           - 'setup'
           - 'lint'
-          - 'lint-parallel'
           - 'generate'
-          - 'generate-parallel'
           - 'ci'
           - 'version-validate'
           - 'version-report'
@@ -77,14 +75,8 @@ jobs:
             "lint")
               poetry run dagger-pipeline lint $VERBOSE_FLAG
               ;;
-            "lint-parallel")
-              poetry run dagger-pipeline lint-parallel $VERBOSE_FLAG
-              ;;
             "generate")
               poetry run dagger-pipeline generate $VERBOSE_FLAG
-              ;;
-            "generate-parallel")
-              poetry run dagger-pipeline generate-parallel $VERBOSE_FLAG
               ;;
             "ci")
               poetry run dagger-pipeline ci $VERBOSE_FLAG
@@ -102,7 +94,7 @@ jobs:
           esac
 
       - name: Upload artifacts
-        if: contains(fromJson('["generate", "generate-parallel", "ci"]'), github.event.inputs.task)
+        if: contains(fromJson('["generate", "ci"]'), github.event.inputs.task)
         uses: actions/upload-artifact@v4
         with:
           name: dev-${{ github.event.inputs.task }}-${{ github.run_number }}

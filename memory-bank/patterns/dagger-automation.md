@@ -73,6 +73,5 @@ async def yaml_lint_task(client: dagger.Client) -> bool:
 ## Performance Optimization
 
 - Use container caching effectively
-- Parallelize independent tasks when possible
 - Minimize container rebuilds
 - Cache tool installations

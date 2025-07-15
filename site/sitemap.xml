@@ -5,10 +5,6 @@
          <lastmod>2025-07-15</lastmod>
     </url>
     <url>
-         <loc>https://taybiz.github.io/css-kustomize/README-versioning/</loc>
-         <lastmod>2025-07-15</lastmod>
-    </url>
-    <url>
          <loc>https://taybiz.github.io/css-kustomize/developer-guide/architecture/</loc>
          <lastmod>2025-07-15</lastmod>
     </url>
@@ -18,18 +14,6 @@
     </url>
     <url>
          <loc>https://taybiz.github.io/css-kustomize/developer-guide/dagger-pipeline/</loc>
-         <lastmod>2025-07-15</lastmod>
-    </url>
-    <url>
-         <loc>https://taybiz.github.io/css-kustomize/examples/advanced-workflows/</loc>
-         <lastmod>2025-07-15</lastmod>
-    </url>
-    <url>
-         <loc>https://taybiz.github.io/css-kustomize/examples/basic-usage/</loc>
-         <lastmod>2025-07-15</lastmod>
-    </url>
-    <url>
-         <loc>https://taybiz.github.io/css-kustomize/examples/cicd-integration/</loc>
          <lastmod>2025-07-15</lastmod>
     </url>
     <url>
@@ -70,10 +54,6 @@
     </url>
     <url>
          <loc>https://taybiz.github.io/css-kustomize/user-guide/kustomize-overlays/</loc>
-         <lastmod>2025-07-15</lastmod>
-    </url>
-    <url>
-         <loc>https://taybiz.github.io/css-kustomize/user-guide/release-names/</loc>
          <lastmod>2025-07-15</lastmod>
     </url>
     <url>

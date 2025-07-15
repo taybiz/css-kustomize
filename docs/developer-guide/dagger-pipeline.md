@@ -181,28 +181,6 @@ Cache invalidation based on:
 - Dependency changes
 - Tool version changes
 
-## Parallel Execution
-
-### Concurrent Operations
-
-```python
-async def run_parallel_linting(self, source: dagger.Directory):
-    """Run linting operations in parallel."""
-    tasks = [
-        self.lint_yaml(source),
-        self.lint_python(source),
-        self.lint_markdown(source)
-    ]
-    results = await asyncio.gather(*tasks)
-    return results
-```
-
-### Resource Management
-
-- CPU and memory limits
-- Concurrent operation limits
-- Resource sharing strategies
-
 ## Error Handling
 
 ### Exception Management
@@ -259,7 +237,6 @@ async def ci_pipeline(self, source: dagger.Directory) -> bool:
 
 ### Execution Optimization
 
-- Parallel operation execution
 - Smart dependency management
 - Resource pooling
 
@@ -354,7 +331,6 @@ def custom_container(self) -> dagger.Container:
 
 ### Performance
 
-- Use parallel execution where possible
 - Implement proper caching
 - Optimize container layers
 - Monitor resource usage
@@ -363,4 +339,3 @@ def custom_container(self) -> dagger.Container:
 
 - Learn about [Contributing](contributing.md)
 - Explore [Architecture](architecture.md)
-- Check [Examples](../examples/advanced-workflows.md)

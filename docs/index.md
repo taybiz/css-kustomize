@@ -20,7 +20,6 @@ Author's Note: But why not helm? After all, there is a [chart](https://github.co
 - Comprehensive linting (YAML, Python, Markdown)
 - Kustomize validation and manifest generation
 - Security scanning for Kubernetes resources
-- Parallel execution for maximum performance
 
 ### 🏷️ **Release Name Strategy**
 
@@ -112,7 +111,6 @@ poetry run dagger-pipeline ci --verbose
 
 - [CLI Commands](user-guide/cli-commands.md) - Complete command reference
 - [Kustomize Overlays](user-guide/kustomize-overlays.md) - Working with overlays
-- [Release Names](user-guide/release-names.md) - Release name strategy
 - [Version Management](user-guide/version-management.md) - Managing versions
 
 ### 🔧 **Developer Guide**
@@ -125,12 +123,6 @@ poetry run dagger-pipeline ci --verbose
 
 - [Pipeline Module](developer-guide/dagger-pipeline.md) - Core pipeline classes and functions
 - [CLI Module](user-guide/cli-commands.md) - Command-line interface reference
-
-### 💡 **Examples**
-
-- [Basic Usage](examples/basic-usage.md) - Common workflows
-- [Advanced Workflows](examples/advanced-workflows.md) - Complex scenarios
-- [CI/CD Integration](examples/cicd-integration.md) - Integration patterns
 
 ## Community and Support
 

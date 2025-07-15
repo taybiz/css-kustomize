@@ -70,26 +70,6 @@ Rich CLI with modern features:
 
 - Colored output and progress indicators
 - Verbose mode for debugging
-- Parallel execution options
-
-## Data Flow
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Base YAML     │    │   Kustomize      │    │   Generated     │
-│   Manifests     │───▶│   Overlays       │───▶│   Manifests     │
-│                 │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Linting &     │    │   Validation     │    │   Security      │
-│   Formatting    │    │   Checks         │    │   Scanning      │
-│                 │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-## Technology Stack
 
 ### Core Technologies
 
@@ -145,7 +125,6 @@ Rich CLI with modern features:
 
 ### Performance
 
-- Parallel pipeline execution
 - Dagger caching strategies
 - Efficient container builds
 - Optimized manifest generation
@@ -193,4 +172,3 @@ Rich CLI with modern features:
 
 - Learn about [Dagger Pipeline](dagger-pipeline.md) internals
 - Read [Contributing Guide](contributing.md)
-- Explore [Examples](../examples/basic-usage.md)

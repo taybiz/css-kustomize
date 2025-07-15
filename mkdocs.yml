@@ -76,17 +76,12 @@ nav:
   - User Guide:
       - CLI Commands: user-guide/cli-commands.md
       - Kustomize Overlays: user-guide/kustomize-overlays.md
-      - Release Names: user-guide/release-names.md
       - Version Management: user-guide/version-management.md
       - Documentation Versioning: user-guide/documentation-versioning.md
   - Developer Guide:
       - Architecture: developer-guide/architecture.md
       - Dagger Pipeline: developer-guide/dagger-pipeline.md
       - Contributing: developer-guide/contributing.md
-  - Examples:
-      - Basic Usage: examples/basic-usage.md
-      - Advanced Workflows: examples/advanced-workflows.md
-      - CI/CD Integration: examples/cicd-integration.md
   - API Reference: reference/
 
 extra:

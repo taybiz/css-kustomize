@@ -26,10 +26,6 @@ pre-commit install
 ```bash
 # Run full linting pipeline
 python -m dagger_pipeline.main
-
-# Run specific checks
-python -m dagger_pipeline.main --yaml-only
-python -m dagger_pipeline.main --python-only
 ```
 
 ### 4. Testing Changes

@@ -64,6 +64,5 @@ Edit the `kustomization.yaml` files to customize:
 
 ## Next Steps
 
-- Learn about [Release Names](release-names.md)
 - Explore [Version Management](version-management.md)
 - Check [CLI Commands](cli-commands.md)

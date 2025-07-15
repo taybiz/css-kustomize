@@ -24,7 +24,7 @@ kubectl apply -k overlays/without-pvc/
 - **🚀 Dagger Automation**: Modern containerized CI/CD pipeline
 - **🏷️ Release Management**: Consistent labeling and version strategies
 - **💾 Storage Options**: Persistent and ephemeral storage configurations
-- **🔧 Developer Experience**: Rich CLI with caching and parallel execution
+- **🔧 Developer Experience**: Rich CLI with caching
 
 ## Project Structure
 
@@ -44,7 +44,6 @@ For detailed information, see the comprehensive documentation:
 - **[Getting Started](docs/getting-started/)** - Installation, quick start, and configuration
 - **[User Guide](docs/user-guide/)** - CLI commands, overlays, release names, and version management
 - **[Developer Guide](docs/developer-guide/)** - Architecture, Dagger pipeline, and contributing
-- **[Examples](docs/examples/)** - Basic usage, advanced workflows, and CI/CD integration
 
 ### Quick Links
 

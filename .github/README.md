@@ -26,9 +26,7 @@ This directory contains simplified GitHub Actions workflows that leverage the Da
 - Available tasks:
   - `setup` - Environment setup
   - `lint` - Run linting checks
-  - `lint-parallel` - Run linting in parallel
   - `generate` - Generate manifests
-  - `generate-parallel` - Generate manifests in parallel
   - `ci` - Complete CI pipeline
   - `version-validate` - Validate version consistency
   - `version-report` - Generate version report
@@ -83,12 +81,10 @@ These workflows follow the project's automation guidelines:
 poetry run dagger-pipeline ci --verbose
 
 # Linting
-poetry run dagger-pipeline lint [--yaml-only|--python-only|--kustomize-only|--security-only]
-poetry run dagger-pipeline lint-parallel
+poetry run dagger-pipeline lint
 
 # Manifest generation
 poetry run dagger-pipeline generate [--overlay <name>]
-poetry run dagger-pipeline generate-parallel
 
 # Version management
 poetry run dagger-pipeline version update <version> [--overlay <name>] [--dry-run]

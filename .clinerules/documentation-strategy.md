@@ -7,7 +7,8 @@ Project-specific guidelines for documentation strategy, emphasizing minimal dupl
 - README.md should be concise and primarily reference /docs for detailed information
 - Avoid duplicating content between README.md and documentation files
 - Use README.md for quick overview, installation, and links to comprehensive docs
-- Keep detailed examples, workflows, and guides in the /docs directory structure
+- Don't Keep detailed examples, workflows, and guides in the /docs directory structure
+- Always document code first, versus creating files in /docs
 
 ## Content organization principles
 

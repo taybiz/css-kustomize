@@ -2,7 +2,7 @@
 
 This module contains the Pipeline class which implements all the core functionality
 for the CSS Kustomize Dagger automation pipeline. It provides methods for linting,
-validation, manifest generation, security scanning, and version management.
+validation, manifest generation, and version management.
 
 The pipeline uses Dagger for containerized execution, ensuring consistent and
 reproducible builds across different environments. All operations are performed
@@ -10,13 +10,8 @@ in isolated containers with the necessary tools and dependencies.
 
 ## Key Features
 
-- **YAML Linting**: Comprehensive syntax and style validation with yamllint
-- **Python Code Quality**: Automated checks and formatting with ruff
-- **Markdown Validation**: Format checking and consistency enforcement
 - **Kustomize Integration**: Configuration validation and manifest generation
-- **Security Scanning**: Kubernetes manifest security analysis
 - **Version Management**: Automated version updates across overlays
-- **Parallel Execution**: High-performance concurrent operations
 - **Rich Console Output**: Progress indicators and detailed feedback
 
 ## Usage Example
@@ -27,7 +22,6 @@ Basic usage of the Pipeline class:
 pipeline = Pipeline(verbose=True)
 await pipeline.run_all_linting()
 await pipeline.generate_all_overlays("manifests")
-await pipeline.security_scan_generated("manifests")
 ```
 
 ## Container Architecture
@@ -52,16 +46,12 @@ class Pipeline:
     """Main pipeline class for CSS Kustomize automation.
 
     This class orchestrates all pipeline operations including linting, validation,
-    manifest generation, and security scanning. It uses Dagger for containerized
+    and manifest generation. It uses Dagger for containerized
     execution to ensure consistent and reproducible builds.
 
     Attributes:
         verbose (bool): Whether to enable verbose output during operations.
         project_root (Path): Path to the project root directory.
-
-    The pipeline supports both sequential and parallel execution modes for
-    different operations, with automatic caching through Dagger to improve
-    performance on subsequent runs.
     """
 
     def __init__(self, verbose: bool = False):
@@ -258,82 +248,6 @@ class Pipeline:
 
             console.print("✅ Kustomize validation passed", style="green")
 
-    async def security_scan(self) -> None:
-        """Run security checks on Kustomize configurations."""
-        if self.verbose:
-            console.print("🔍 Running security scan...")
-
-        async with self._get_client() as client:
-            container = await self._get_kustomize_container(client)
-
-            # Generate manifests for security scanning
-            overlays_dir = self.project_root / "overlays"
-            security_issues = 0
-
-            if overlays_dir.exists():
-                for overlay_path in overlays_dir.iterdir():
-                    if overlay_path.is_dir():
-                        overlay_name = overlay_path.name
-                        if self.verbose:
-                            console.print(f"Scanning overlay: {overlay_name}")
-
-                        # Generate manifest
-                        manifest_content = await container.with_exec(
-                            ["kustomize", "build", f"overlays/{overlay_name}/"]
-                        ).stdout()
-
-                        # Check for security issues
-                        issues = self._check_security_issues(manifest_content, overlay_name)
-                        security_issues += issues
-
-            if security_issues > 0:
-                raise Exception(f"Found {security_issues} security issues")
-
-            console.print("✅ Security scan passed", style="green")
-
-    async def security_scan_generated(self, output_dir: str) -> None:
-        """Run security checks on generated manifests."""
-        if self.verbose:
-            console.print("🔍 Running security scan on generated manifests...")
-
-        manifests_dir = Path(output_dir)
-        if not manifests_dir.exists():
-            raise Exception(f"Manifests directory {output_dir} does not exist")
-
-        security_issues = 0
-        for manifest_file in manifests_dir.glob("*.yaml"):
-            if self.verbose:
-                console.print(f"Scanning manifest: {manifest_file.name}")
-
-            content = manifest_file.read_text()
-            issues = self._check_security_issues(content, manifest_file.name)
-            security_issues += issues
-
-        if security_issues > 0:
-            raise Exception(f"Found {security_issues} security issues in generated manifests")
-
-        console.print("✅ Security scan on generated manifests passed", style="green")
-
-    def _check_security_issues(self, manifest_content: str, name: str) -> int:
-        """Check for security issues in manifest content."""
-        issues = 0
-
-        # Check for root user
-        if re.search(r"runAsUser:\s*0\b", manifest_content):
-            console.print(f"❌ Found root user in {name}", style="red")
-            issues += 1
-
-        # Check for runAsNonRoot
-        if not re.search(r"runAsNonRoot.*true", manifest_content):
-            console.print(f"⚠️ runAsNonRoot not found in {name}", style="yellow")
-
-        # Check for privileged containers
-        if re.search(r"privileged.*true", manifest_content):
-            console.print(f"❌ Found privileged container in {name}", style="red")
-            issues += 1
-
-        return issues
-
     async def generate_overlay(self, overlay_name: str, output_dir: str) -> None:
         """Generate manifest for a specific overlay."""
         if self.verbose:
@@ -401,10 +315,6 @@ class Pipeline:
             await self.validate_kustomize()
             progress.update(task4, completed=True)
 
-            task5 = progress.add_task("Security scan...", total=None)
-            await self.security_scan()
-            progress.update(task5, completed=True)
-
         console.print("✅ All linting checks completed", style="green")
 
     async def setup_environment(self) -> None:
@@ -452,7 +362,6 @@ class Pipeline:
 
     def _validate_version_format(self, version: str) -> bool:
         """Validate semantic version format."""
-        import re
 
         pattern = r"^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$"
         return bool(re.match(pattern, version))
@@ -746,58 +655,6 @@ class Pipeline:
 
             console.print("\n" + "=" * 50)
             console.print("📊 Report completed", style="bold blue")
-
-    async def run_all_linting_parallel(self) -> None:
-        """Run all linting checks in parallel for maximum speed."""
-        if self.verbose:
-            console.print("🔍 Running comprehensive linting in parallel...")
-
-        import asyncio
-
-        # Run all linting tasks in parallel
-        tasks = [
-            self.lint_yaml(),
-            self.lint_python(),
-            self.lint_markdown(),
-            self.validate_kustomize(),
-            self.security_scan(),
-        ]
-
-        try:
-            await asyncio.gather(*tasks)
-            console.print("✅ All parallel linting checks completed", style="green")
-        except Exception as e:
-            console.print(f"❌ Parallel linting failed: {e}", style="red")
-            raise
-
-    async def generate_all_overlays_parallel(self, output_dir: str) -> None:
-        """Generate manifests for all overlays in parallel for maximum speed."""
-        if self.verbose:
-            console.print("🏗️ Generating all overlays in parallel...")
-
-        overlays_dir = self.project_root / "overlays"
-        if not overlays_dir.exists():
-            console.print("No overlays directory found", style="yellow")
-            return
-
-        import asyncio
-
-        # Get all overlay names
-        overlay_names = [d.name for d in overlays_dir.iterdir() if d.is_dir()]
-
-        if not overlay_names:
-            console.print("No overlays found to generate", style="yellow")
-            return
-
-        # Generate all overlays in parallel
-        tasks = [self.generate_overlay(overlay_name, output_dir) for overlay_name in overlay_names]
-
-        try:
-            await asyncio.gather(*tasks)
-            console.print("✅ All overlays generated in parallel", style="green")
-        except Exception as e:
-            console.print(f"❌ Parallel generation failed: {e}", style="red")
-            raise
 
     async def _get_docs_container(self, client: dagger.Client) -> dagger.Container:
         """Get Python container with documentation dependencies installed.

@@ -24,15 +24,8 @@ All commands support these global options:
 Run various linting and formatting checks on the codebase.
 
 ```bash
-poetry run dagger-pipeline lint [OPTIONS]
+poetry run dagger-pipeline lint
 ```
-
-#### Options
-
-- `--yaml` / `--no-yaml`: Run YAML linting with yamllint (default: enabled)
-- `--python` / `--no-python`: Run Python linting with ruff (default: enabled)
-- `--markdown` / `--no-markdown`: Run Markdown formatting checks (default: enabled)
-- `--parallel` / `--no-parallel`: Run linting checks in parallel (default: sequential)
 
 #### Examples
 
@@ -40,14 +33,8 @@ poetry run dagger-pipeline lint [OPTIONS]
 # Run all linting checks
 poetry run dagger-pipeline lint
 
-# Run only YAML linting
-poetry run dagger-pipeline lint --yaml --no-python --no-markdown
-
 # Run with verbose output
 poetry run dagger-pipeline lint --verbose
-
-# Run in parallel for faster execution
-poetry run dagger-pipeline lint --parallel
 ```
 
 ### `validate` - Kustomize Validation
@@ -80,18 +67,11 @@ poetry run dagger-pipeline generate [OPTIONS] OUTPUT_DIR
 
 - `OUTPUT_DIR`: Directory where generated manifests will be saved
 
-#### Options
-
-- `--parallel` / `--no-parallel`: Generate manifests in parallel (default: sequential)
-
 #### Examples
 
 ```bash
 # Generate all manifests
 poetry run dagger-pipeline generate manifests/
-
-# Generate with parallel execution
-poetry run dagger-pipeline generate --parallel manifests/
 
 # Generate to custom directory
 poetry run dagger-pipeline generate /tmp/k8s-manifests/
@@ -260,10 +240,6 @@ Run the complete CI/CD pipeline including all linting, validation, generation, a
 poetry run dagger-pipeline ci [OPTIONS]
 ```
 
-#### Options
-
-- `--parallel` / `--no-parallel`: Run operations in parallel where possible (default: sequential)
-
 #### Examples
 
 ```bash
@@ -272,9 +248,6 @@ poetry run dagger-pipeline ci
 
 # Run with verbose output
 poetry run dagger-pipeline ci --verbose
-
-# Run with parallel execution
-poetry run dagger-pipeline ci --parallel --verbose
 ```
 
 ### `setup-env` - Setup Development Environment
@@ -342,7 +315,7 @@ poetry run dagger-pipeline validate-versions
 poetry run dagger-pipeline ci --verbose
 
 # Generate final manifests
-poetry run dagger-pipeline generate --parallel manifests/
+poetry run dagger-pipeline generate manifests/
 ```
 
 ### Debugging Workflow
@@ -376,23 +349,13 @@ The CLI respects these environment variables:
 
 ## Performance Tips
 
-### Use Parallel Execution
-
-For faster execution, use parallel options where available:
-
-```bash
-poetry run dagger-pipeline lint --parallel
-poetry run dagger-pipeline generate --parallel manifests/
-poetry run dagger-pipeline ci --parallel
-```
-
 ### Selective Operations
 
 Run only what you need during development:
 
 ```bash
 # Only YAML linting
-poetry run dagger-pipeline lint --yaml-only
+poetry run dagger-pipeline lint
 
 # Only specific overlay
 poetry run dagger-pipeline generate-overlay without-pvc manifests/local.yaml
@@ -422,9 +385,5 @@ poetry run dagger-pipeline pre-commit
 
 ```bash
 # In CI/CD pipelines
-poetry run dagger-pipeline ci --parallel --verbose
+poetry run dagger-pipeline ci --verbose
 ```
-
-### IDE Integration
-
-Many IDEs can be configured to run these commands as tasks or build steps. See the [Examples](../examples/cicd-integration.md) section for specific integrations.

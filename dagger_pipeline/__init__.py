@@ -12,7 +12,6 @@ consistent and reproducible builds across different environments.
 - **Kustomize Integration**: Configuration validation and manifest generation
 - **Security Scanning**: Kubernetes manifest security analysis
 - **Version Management**: Automated version updates across overlays
-- **Parallel Execution**: High-performance concurrent operations
 
 ## Usage
 
