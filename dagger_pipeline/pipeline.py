@@ -752,13 +752,15 @@ class Pipeline:
         if title is None:
             title = version
 
-        async with self._get_client() as client:
-            container = await self._get_docs_container(client)
+        # Check if we're in a CI environment (GitHub Actions)
+        import os
 
-            # Configure git for mike
-            container = container.with_exec(["git", "config", "user.name", "dagger-pipeline"]).with_exec(
-                ["git", "config", "user.email", "pipeline@css-kustomize.local"]
-            )
+        if os.getenv("GITHUB_ACTIONS") == "true":
+            # In GitHub Actions, run mike directly on the host to preserve git credentials
+            if self.verbose:
+                console.print("Running in GitHub Actions - using host environment for git operations")
+
+            import subprocess
 
             # Deploy with mike using explicit title
             deploy_cmd = [
@@ -776,16 +778,74 @@ class Pipeline:
             if self.verbose:
                 console.print(f"Deploying version {version} (title: {title}) with alias {alias}")
 
-            await container.with_exec(deploy_cmd).stdout()
+            try:
+                result = subprocess.run(
+                    deploy_cmd,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_root,
+                )
+                if self.verbose and result.stdout:
+                    console.print(result.stdout)
+            except subprocess.CalledProcessError as e:
+                console.print(f"❌ Mike deploy failed: {e.stderr}", style="red")
+                raise Exception(f"Documentation deployment failed: {e.stderr}") from e
 
             # Set as default if requested
             if set_default:
                 if self.verbose:
                     console.print(f"Setting {alias} as default version")
 
-                await container.with_exec(["poetry", "run", "mike", "set-default", alias]).stdout()
+                try:
+                    result = subprocess.run(
+                        ["poetry", "run", "mike", "set-default", alias],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                        cwd=self.project_root,
+                    )
+                    if self.verbose and result.stdout:
+                        console.print(result.stdout)
+                except subprocess.CalledProcessError as e:
+                    console.print(f"❌ Mike set-default failed: {e.stderr}", style="red")
+                    raise Exception(f"Setting default version failed: {e.stderr}") from e
+        else:
+            # Local development - use Dagger container
+            async with self._get_client() as client:
+                container = await self._get_docs_container(client)
 
-            console.print(f"✅ Documentation deployed: {version} ({alias})", style="green")
+                # Configure git for mike
+                container = container.with_exec(["git", "config", "user.name", "dagger-pipeline"]).with_exec(
+                    ["git", "config", "user.email", "pipeline@css-kustomize.local"]
+                )
+
+                # Deploy with mike using explicit title
+                deploy_cmd = [
+                    "poetry",
+                    "run",
+                    "mike",
+                    "deploy",
+                    "--update-aliases",
+                    "--title",
+                    title,
+                    version,
+                    alias,
+                ]
+
+                if self.verbose:
+                    console.print(f"Deploying version {version} (title: {title}) with alias {alias}")
+
+                await container.with_exec(deploy_cmd).stdout()
+
+                # Set as default if requested
+                if set_default:
+                    if self.verbose:
+                        console.print(f"Setting {alias} as default version")
+
+                    await container.with_exec(["poetry", "run", "mike", "set-default", alias]).stdout()
+
+        console.print(f"✅ Documentation deployed: {version} ({alias})", style="green")
 
     async def list_doc_versions(self) -> None:
         """List all deployed documentation versions."""
