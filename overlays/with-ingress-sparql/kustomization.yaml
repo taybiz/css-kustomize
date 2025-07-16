@@ -4,6 +4,8 @@ kind: Kustomization
 metadata:
   name: css-with-ingress-sparql
 
+namespace: solid
+
 resources:
   - ../../base
 
@@ -41,5 +43,3 @@ patches:
       - op: replace
         path: /spec/template/metadata/labels/app.kubernetes.io~1instance
         value: css-with-ingress-sparql
-
-namespace: solid
