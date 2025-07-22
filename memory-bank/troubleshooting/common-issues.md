@@ -35,6 +35,94 @@ rules:
 1. Configure ruff in pyproject.toml for project needs
 1. Run ruff format for consistent formatting
 
+### Python Exception Handling (Ruff B904)
+
+**Problem**: Ruff B904 violations - "Within an `except` clause, raise exceptions with `raise ... from err`"
+
+**Symptoms**:
+
+```
+error: Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+```
+
+**Solutions**:
+
+1. **Add proper exception chaining:**
+
+   ```python
+   # ❌ Incorrect
+   try:
+       operation()
+   except Exception as e:
+       raise CustomException("Failed")
+
+   # ✅ Correct
+   try:
+       operation()
+   except Exception as e:
+       raise CustomException("Failed") from e
+   ```
+
+1. **For subprocess errors:**
+
+   ```python
+   try:
+       subprocess.run(command, check=True)
+   except subprocess.CalledProcessError as e:
+       raise Exception(f"Command failed: {e}") from e
+   ```
+
+1. **When suppressing context (rare cases):**
+
+   ```python
+   try:
+       operation()
+   except Exception as e:
+       raise UserFriendlyException("Something went wrong") from None
+   ```
+
+1. **Check specific B904 violations:**
+
+   ```bash
+   poetry run ruff check . --select B904
+   ```
+
+### Python Code Formatting Issues
+
+**Problem**: Inconsistent code formatting across files
+
+**Symptoms**:
+
+- Mixed quote styles
+- Inconsistent indentation
+- Import sorting issues
+- Line length violations
+
+**Solutions**:
+
+1. **Run comprehensive formatting:**
+
+   ```bash
+   # Format all Python files
+   poetry run ruff format .
+
+   # Check and fix linting issues
+   poetry run ruff check . --fix
+   ```
+
+1. **Integrate into development workflow:**
+
+   - Format immediately after making changes
+   - Include in pre-commit hooks
+   - Run before committing changes
+
+1. **Validate formatting in CI:**
+
+   ```bash
+   # Check formatting without making changes
+   poetry run ruff format --check .
+   ```
+
 ## Dagger Pipeline Issues
 
 ### Container Build Failures

@@ -19,6 +19,9 @@ pre-commit install
 
 1. Create/modify Kubernetes manifests in `base/` or `overlays/`
 1. Update Dagger pipeline code if needed
+1. **Apply formatting requirements:**
+   - For Python changes: `poetry run ruff format .`
+   - For Markdown changes: `poetry run mdformat .`
 1. Test changes locally before committing
 
 ### 3. Validation Pipeline

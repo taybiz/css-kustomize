@@ -10,6 +10,8 @@ Quick navigation guide to all knowledge stored in the css-kustomize memory bank.
 
 - [`patterns/kustomize-patterns.md`](patterns/kustomize-patterns.md) - Kustomize configuration patterns and anti-patterns
 - [`patterns/dagger-automation.md`](patterns/dagger-automation.md) - Dagger pipeline architecture and best practices
+- [`patterns/documentation-strategy.md`](patterns/documentation-strategy.md) - Documentation hierarchy, formatting, and maintenance guidelines
+- [`patterns/python-code-quality.md`](patterns/python-code-quality.md) - Python formatting standards and exception handling patterns
 
 ## 🔧 Troubleshooting
 
